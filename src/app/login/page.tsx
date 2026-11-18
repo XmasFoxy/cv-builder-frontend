@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye } from "lucide-react";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -11,12 +11,11 @@ export default function LoginPage() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    // Подключим GraphQL-авторизацию на следующем этапе.
+    // GraphQL-авторизацию подключим на следующем этапе.
   }
 
   return (
     <main className="min-h-screen bg-[#f5f5f7] text-[#333333] dark:bg-[#2d2d2d] dark:text-white">
-      {/* Вкладки авторизации */}
       <nav className="flex justify-center pt-6 text-sm font-medium">
         <Link
           href="/login"
@@ -34,7 +33,6 @@ export default function LoginPage() {
         </Link>
       </nav>
 
-      {/* Основная форма */}
       <section className="mx-auto mt-24 w-full max-w-[420px] px-6 sm:mt-32">
         <h1 className="text-center text-3xl font-normal">
           Welcome back
@@ -48,7 +46,6 @@ export default function LoginPage() {
           onSubmit={handleSubmit}
           className="mt-10 flex flex-col gap-6"
         >
-          {/* Email */}
           <div>
             <label htmlFor="email" className="sr-only">
               Email
@@ -65,7 +62,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Password */}
           <div className="relative">
             <label htmlFor="password" className="sr-only">
               Password
@@ -90,15 +86,19 @@ export default function LoginPage() {
               onClick={() => setShowPassword((prev) => !prev)}
               className="absolute inset-y-0 right-4 flex items-center text-[#888888] transition-colors hover:text-[#cf3033]"
             >
-              {showPassword ? (
-                <EyeOff size={20} />
-              ) : (
+              <span className="relative flex items-center justify-center">
                 <Eye size={20} />
-              )}
+
+                {!showPassword && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute h-[1.5px] w-[25px] rotate-45 rounded-full bg-current"
+                  />
+                )}
+              </span>
             </button>
           </div>
 
-          {/* Действия */}
           <div className="mt-4 flex flex-col items-center gap-5">
             <button
               type="submit"
