@@ -1,17 +1,50 @@
-
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
 import { Eye } from "lucide-react";
+import { useMutation } from "@apollo/client/react";
+
+import {
+  LOGIN_MUTATION,
+  type LoginResponse,
+  type LoginVariables,
+} from "@/graphql/auth";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  const [login, { loading, error }] = useMutation<
+    LoginResponse,
+    LoginVariables
+  >(LOGIN_MUTATION);
+
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
 
-    // GraphQL-авторизацию подключим на следующем этапе.
+    const formData = new FormData(event.currentTarget);
+
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+
+    try {
+      const result = await login({
+        variables: {
+          auth: {
+            email,
+            password,
+          },
+        },
+      });
+
+      if (result.data?.login) {
+        console.log("Login successful:", result.data.login.user);
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
   }
 
   return (
@@ -58,7 +91,8 @@ export default function LoginPage() {
               placeholder="Email"
               autoComplete="email"
               required
-              className="h-11 w-full rounded-sm border border-[#cccccc] bg-transparent px-4 text-sm outline-none transition-colors placeholder:text-[#888888] focus:border-[#cf3033] dark:border-[#666666] dark:placeholder:text-[#aaaaaa]"
+              disabled={loading}
+              className="h-11 w-full rounded-sm border border-[#cccccc] bg-transparent px-4 text-sm outline-none transition-colors placeholder:text-[#888888] focus:border-[#cf3033] disabled:opacity-60 dark:border-[#666666] dark:placeholder:text-[#aaaaaa]"
             />
           </div>
 
@@ -74,7 +108,8 @@ export default function LoginPage() {
               placeholder="Password"
               autoComplete="current-password"
               required
-              className="h-11 w-full rounded-sm border border-[#cccccc] bg-transparent px-4 pr-12 text-sm outline-none transition-colors placeholder:text-[#888888] focus:border-[#cf3033] dark:border-[#666666] dark:placeholder:text-[#aaaaaa]"
+              disabled={loading}
+              className="h-11 w-full rounded-sm border border-[#cccccc] bg-transparent px-4 pr-12 text-sm outline-none transition-colors placeholder:text-[#888888] focus:border-[#cf3033] disabled:opacity-60 dark:border-[#666666] dark:placeholder:text-[#aaaaaa]"
             />
 
             <button
@@ -99,12 +134,19 @@ export default function LoginPage() {
             </button>
           </div>
 
+          {error && (
+            <p role="alert" className="text-center text-sm text-[#cf3033]">
+              {error.message}
+            </p>
+          )}
+
           <div className="mt-4 flex flex-col items-center gap-5">
             <button
               type="submit"
-              className="h-11 min-w-[140px] rounded-full bg-[#cf3033] px-8 text-sm font-medium text-white transition-colors hover:bg-[#b9292c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cf3033]"
+              disabled={loading}
+              className="h-11 min-w-[140px] rounded-full bg-[#cf3033] px-8 text-sm font-medium text-white transition-colors hover:bg-[#b9292c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cf3033] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              SIGN IN
+              {loading ? "SIGNING IN..." : "SIGN IN"}
             </button>
 
             <Link
