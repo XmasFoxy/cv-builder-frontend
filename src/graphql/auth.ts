@@ -30,3 +30,35 @@ export type LoginResponse = {
     };
   };
 };
+
+export const SIGNUP_MUTATION = gql`
+  mutation Signup($auth: SignupInput!) {
+    signup(auth: $auth) {
+      access_token
+      refresh_token
+      user {
+        id
+        email
+      }
+    }
+  }
+`;
+
+export type SignupVariables = {
+  auth: {
+    email: string;
+    password: string;
+    confirmPassword: string;
+  };
+};
+
+export type SignupResponse = {
+  signup: {
+    access_token: string;
+    refresh_token: string;
+    user: {
+      id: string;
+      email: string;
+    };
+  };
+};
