@@ -1,7 +1,9 @@
 "use client";
 
 import { ApolloProvider } from "@apollo/client/react";
-import { apolloClient } from "@/lib/apollo-client";
+import { createApolloClient } from "@/lib/apollo-client";
+
+const apolloClient = createApolloClient();
 
 type Props = {
   children: React.ReactNode;

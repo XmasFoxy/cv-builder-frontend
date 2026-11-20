@@ -1,4 +1,8 @@
-export default function EmployeesPage() {
+import { requireSession } from "@/lib/session";
+
+export default async function EmployeesPage() {
+  await requireSession("/employees");
+
   return (
     <section>
       <h1 className="text-xl font-medium">Employees</h1>

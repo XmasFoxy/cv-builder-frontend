@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "@apollo/client/react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -9,23 +9,19 @@ import { AuthField } from "@/components/auth/auth-field";
 import { AuthActions, AuthLayout } from "@/components/auth/auth-layout";
 
 import {
-  LOGIN_MUTATION,
-  type LoginResponse,
-  type LoginVariables,
-} from "@/graphql/auth";
-
-import {
   loginSchema,
   type LoginFormValues,
 } from "@/lib/validations/auth";
+import { signIn } from "./actions";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting: isLoading },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -35,44 +31,21 @@ export default function LoginPage() {
     mode: "onBlur",
   });
 
-  const [login, { loading }] = useMutation<
-    LoginResponse,
-    LoginVariables
-  >(LOGIN_MUTATION);
-
   async function onSubmit(values: LoginFormValues) {
     setServerError(null);
+    const result = await signIn(values).catch(() => "unavailable" as const);
 
-    try {
-      const result = await login({
-        variables: {
-          auth: {
-            email: values.email,
-            password: values.password,
-          },
-        },
-      });
-
-      if (result.data?.login) {
-        // Временно проверяем успешный ответ.
-        // Сохранение токенов добавим на следующем этапе.
-        console.log("Login successful:", result.data.login.user);
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "";
-
-      if (message.includes("invalidCredentials")) {
-        setServerError("Invalid email or password");
-      } else {
-        setServerError(
-          "Something went wrong. Please try again later.",
-        );
-      }
+    if (result === "success") {
+      router.replace("/employees");
+      return;
     }
-  }
 
-  const isLoading = loading || isSubmitting;
+    setServerError(
+      result === "invalid-credentials"
+        ? "Invalid email or password"
+        : "Something went wrong. Please try again later.",
+    );
+  }
 
   return (
     <AuthLayout
