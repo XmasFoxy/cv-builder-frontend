@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import type { UseFormRegisterReturn } from "react-hook-form";
 
 type AuthFieldProps = {
@@ -57,15 +57,9 @@ export function AuthField({
             onClick={() => setShowPassword((visible) => !visible)}
             className="absolute inset-y-0 right-4 flex cursor-pointer items-center text-[#888888] transition-colors hover:text-[#cf3033]"
           >
-            <span
-              aria-hidden="true"
-              className="relative flex items-center justify-center"
-            >
-              <Eye size={20} />
-              {!showPassword && (
-                <span className="absolute h-[1.5px] w-[25px] rotate-45 rounded-full bg-current" />
-              )}
-            </span>
+            {showPassword
+              ? <EyeOff size={20} aria-hidden="true" />
+              : <Eye size={20} aria-hidden="true" />}
           </button>
         )}
       </div>

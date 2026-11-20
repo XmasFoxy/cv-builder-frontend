@@ -9,6 +9,17 @@ export const FORGOT_PASSWORD_MUTATION = gql`
 export type ForgotPasswordResponse = { forgotPassword: null };
 export type ForgotPasswordVariables = { auth: { email: string } };
 
+export const RESET_PASSWORD_MUTATION = gql`
+  mutation ResetPassword($auth: ResetPasswordInput!) {
+    resetPassword(auth: $auth)
+  }
+`;
+
+export type ResetPasswordResponse = { resetPassword: null };
+export type ResetPasswordVariables = {
+  auth: { newPassword: string; confirmPassword: string };
+};
+
 export const LOGIN_MUTATION = gql`
   mutation Login($auth: AuthInput!) {
     login(auth: $auth) {

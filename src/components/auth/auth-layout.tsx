@@ -10,7 +10,7 @@ type AuthLayoutProps = {
   currentPage?: (typeof authLinks)[number]["href"];
   title: string;
   description: string;
-  onSubmit: NonNullable<ComponentProps<"form">["onSubmit"]>;
+  onSubmit?: ComponentProps<"form">["onSubmit"];
   children: ReactNode;
 };
 
@@ -49,9 +49,11 @@ export function AuthLayout({
         <h1 className="text-center text-3xl font-normal">{title}</h1>
         <p className="mt-4 text-center text-sm text-[#666666]">{description}</p>
 
-        <form onSubmit={onSubmit} noValidate className="mt-10 flex flex-col gap-6">
-          {children}
-        </form>
+        {onSubmit ? (
+          <form onSubmit={onSubmit} noValidate className="mt-10 flex flex-col gap-6">
+            {children}
+          </form>
+        ) : children}
       </section>
     </main>
   );
