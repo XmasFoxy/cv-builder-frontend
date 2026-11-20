@@ -19,7 +19,10 @@ async function submitLogin(email = credentials.email) {
   const user = userEvent.setup();
   await user.type(screen.getByRole("textbox", { name: "Email" }), email);
   await user.type(screen.getByLabelText("Password"), credentials.password);
-  await user.click(screen.getByRole("button", { name: "SIGN IN" }));
+  await user.tab();
+  const submit = screen.getByRole("button", { name: "SIGN IN" });
+  if (email === credentials.email) await waitFor(() => expect(submit).toBeEnabled());
+  await user.click(submit);
 }
 
 describe("LoginPage", () => {
@@ -37,10 +40,13 @@ describe("LoginPage", () => {
 
   it("shows validation errors for empty fields", async () => {
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "SIGN IN" }));
+    await user.click(screen.getByRole("textbox", { name: "Email" }));
+    await user.click(screen.getByLabelText("Password"));
+    await user.tab();
 
     expect(await screen.findByText("Email is required")).toBeInTheDocument();
     expect(screen.getByText("Password is required")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "SIGN IN" })).toBeDisabled();
     expect(signIn).not.toHaveBeenCalled();
   });
 
@@ -49,6 +55,16 @@ describe("LoginPage", () => {
 
     expect(await screen.findByText("Enter a valid email address")).toBeInTheDocument();
     expect(signIn).not.toHaveBeenCalled();
+  });
+
+  it("keeps sign in disabled when the password is shorter than six characters", async () => {
+    const user = userEvent.setup();
+    await user.type(screen.getByRole("textbox", { name: "Email" }), credentials.email);
+    await user.type(screen.getByLabelText("Password"), "12345");
+    await user.tab();
+
+    expect(await screen.findByText("Password must be at least 6 characters long")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "SIGN IN" })).toBeDisabled();
   });
 
   it("shows an error when credentials are invalid", async () => {

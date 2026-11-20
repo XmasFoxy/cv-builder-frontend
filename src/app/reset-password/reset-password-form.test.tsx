@@ -1,26 +1,21 @@
-import { MockedProvider } from "@apollo/client/testing/react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { GraphQLError } from "graphql";
-import { expect, it, vi } from "vitest";
-
-import { RESET_PASSWORD_MUTATION } from "@/graphql/auth";
+import { beforeEach, expect, it, vi } from "vitest";
+import { resetPassword } from "./actions";
 import { ResetPasswordForm } from "./reset-password-form";
 
-const { getToken } = vi.hoisted(() => ({ getToken: vi.fn() }));
-vi.mock("next/navigation", () => ({ useSearchParams: () => ({ get: getToken }) }));
+const { getToken, replace } = vi.hoisted(() => ({ getToken: vi.fn(), replace: vi.fn() }));
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => ({ get: getToken }),
+  useRouter: () => ({ replace }),
+}));
+vi.mock("./actions", () => ({ resetPassword: vi.fn() }));
 
-const request = {
-  query: RESET_PASSWORD_MUTATION,
-  variables: { auth: { newPassword: "new-password", confirmPassword: "new-password" } },
-};
+beforeEach(() => vi.resetAllMocks());
 
-function renderForm(
-  mocks: React.ComponentProps<typeof MockedProvider>["mocks"] = [],
-  token: string | null = "test.header.signature",
-) {
+function renderForm(token: string | null = "test.header.signature") {
   getToken.mockReturnValue(token);
-  render(<MockedProvider mocks={mocks}><ResetPasswordForm /></MockedProvider>);
+  render(<ResetPasswordForm />);
 }
 
 async function submit(confirmation = "new-password") {
@@ -31,7 +26,7 @@ async function submit(confirmation = "new-password") {
 }
 
 it("offers a new link when there is no token", () => {
-  renderForm([], null);
+  renderForm(null);
   expect(screen.getByRole("link", { name: "REQUEST A NEW LINK" })).toHaveAttribute(
     "href", "/forgot-password",
   );
@@ -67,7 +62,8 @@ it("shows an open eye for hidden passwords and a crossed eye for visible passwor
 });
 
 it("offers a new link when the backend rejects an expired token", async () => {
-  renderForm([{ request, result: { errors: [new GraphQLError("actionExpired")] } }]);
+  vi.mocked(resetPassword).mockResolvedValue("expired");
+  renderForm();
   await submit();
   expect(await screen.findByText(/link has expired/)).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "REQUEST A NEW LINK" })).toHaveAttribute(
@@ -75,8 +71,16 @@ it("offers a new link when the backend rejects an expired token", async () => {
   );
 });
 
-it("confirms the reset when GraphQL returns null and links back to sign in", async () => {
-  renderForm([{ request, result: { data: { resetPassword: null } } }]);
+it("opens the dashboard when reset also creates a session", async () => {
+  vi.mocked(resetPassword).mockResolvedValue("signed-in");
+  renderForm();
+  await submit();
+  expect(replace).toHaveBeenCalledExactlyOnceWith("/employees");
+});
+
+it("links back to sign in when the password changed but a session could not be created", async () => {
+  vi.mocked(resetPassword).mockResolvedValue("updated");
+  renderForm();
   await submit();
   expect(await screen.findByText(/password has been updated/)).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "GO TO SIGN IN" })).toHaveAttribute("href", "/login");

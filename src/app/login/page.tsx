@@ -21,14 +21,14 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting: isLoading },
+    formState: { errors, isSubmitting: isLoading, isValid },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
-    mode: "onBlur",
+    mode: "onTouched",
   });
 
   async function onSubmit(values: LoginFormValues) {
@@ -86,7 +86,7 @@ export default function LoginPage() {
       )}
 
       <AuthActions
-        disabled={isLoading}
+        disabled={isLoading || !isValid}
         submitLabel={isLoading ? "SIGNING IN..." : "SIGN IN"}
         linkHref="/forgot-password"
         linkLabel="FORGOT PASSWORD"

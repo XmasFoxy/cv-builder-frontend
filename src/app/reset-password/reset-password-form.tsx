@@ -1,21 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { CombinedGraphQLErrors } from "@apollo/client/errors";
-import { useMutation } from "@apollo/client/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthActions, AuthLayout } from "@/components/auth/auth-layout";
-import {
-  RESET_PASSWORD_MUTATION,
-  type ResetPasswordResponse,
-  type ResetPasswordVariables,
-} from "@/graphql/auth";
 import { resetPasswordSchema, type ResetPasswordFormValues } from "@/lib/validations/auth";
+import { resetPassword } from "./actions";
 
 function ResetMessage({
   description,
@@ -41,11 +35,9 @@ function ResetMessage({
 }
 
 export function ResetPasswordForm() {
+  const router = useRouter();
   const token = useSearchParams()?.get("token");
   const [status, setStatus] = useState<"idle" | "complete" | "expired" | "error">("idle");
-  const [resetPassword] = useMutation<ResetPasswordResponse, ResetPasswordVariables>(
-    RESET_PASSWORD_MUTATION,
-  );
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } =
     useForm<ResetPasswordFormValues>({
       resolver: zodResolver(resetPasswordSchema),
@@ -76,21 +68,17 @@ export function ResetPasswordForm() {
   }
 
   async function onSubmit(auth: ResetPasswordFormValues) {
+    if (!token) return;
     setStatus("idle");
-    try {
-      await resetPassword({
-        variables: { auth },
-        context: {
-          headers: { authorization: `Bearer ${token}` },
-          fetchOptions: { redirect: "error", referrerPolicy: "no-referrer" },
-        },
-      });
+    const result = await resetPassword(token, auth).catch(() => "unavailable" as const);
+    if (result === "signed-in") {
+      reset();
+      router.replace("/employees");
+    } else if (result === "updated") {
       reset();
       setStatus("complete");
-    } catch (error) {
-      const expired = CombinedGraphQLErrors.is(error) &&
-        error.errors.some(({ message }) => message === "actionExpired");
-      setStatus(expired ? "expired" : "error");
+    } else {
+      setStatus(result === "expired" ? "expired" : "error");
     }
   }
 

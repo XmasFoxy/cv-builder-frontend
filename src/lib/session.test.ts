@@ -42,7 +42,7 @@ it("stores both refreshed tokens and redirects within the dashboard", async () =
 
   const result = await GET(new Request("http://localhost/api/auth/refresh?next=%2F%2Fexample.test"));
 
-  expect(result.headers.get("location")).toBe("http://localhost/employees");
+  expect(result.headers.get("location")).toBe("/employees");
   expect(store.set.mock.calls.map(([name, value]) => [name, value])).toEqual([
     [accessCookie, "new-access"],
     [refreshCookie, "new-refresh"],
@@ -57,7 +57,7 @@ it("clears cookies when the backend rejects the refresh token", async () => {
 
   const result = await GET(new Request("http://localhost/api/auth/refresh"));
 
-  expect(result.headers.get("location")).toBe("http://localhost/login");
+  expect(result.headers.get("location")).toBe("/login");
   expect(store.delete.mock.calls.flat()).toEqual([accessCookie, refreshCookie]);
 });
 

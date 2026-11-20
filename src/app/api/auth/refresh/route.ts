@@ -1,10 +1,13 @@
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
 
 import { dashboardPaths, refreshSession, verifyAccess } from "@/lib/session";
 import { clearSession, refreshCookie, writeSession } from "@/lib/session-cookies";
 
 const headers = { "Cache-Control": "private, no-store" };
+
+function redirectTo(path: string) {
+  return new Response(null, { status: 307, headers: { ...headers, Location: path } });
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -20,7 +23,7 @@ export async function GET(request: Request) {
           throw new Error("New access token was rejected");
         }
         writeSession(store, tokens);
-        return NextResponse.redirect(new URL(destination, url), { headers });
+        return redirectTo(destination);
       }
     }
   } catch {
@@ -31,5 +34,5 @@ export async function GET(request: Request) {
   }
 
   clearSession(store);
-  return NextResponse.redirect(new URL("/login", url), { headers });
+  return redirectTo("/login");
 }
