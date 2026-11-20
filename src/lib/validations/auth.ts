@@ -1,12 +1,10 @@
 import { z } from "zod";
 
-export const loginSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, "Email is required")
-    .pipe(z.email("Enter a valid email address")),
+const emailSchema = z.string().trim().min(1, "Email is required")
+  .pipe(z.email("Enter a valid email address"));
 
+export const loginSchema = z.object({
+  email: emailSchema,
   password: z.string().min(1, "Password is required"),
 });
 
@@ -14,11 +12,7 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const signupSchema = z
   .object({
-    email: z
-      .string()
-      .trim()
-      .min(1, "Email is required")
-      .pipe(z.email("Enter a valid email address")),
+    email: emailSchema,
 
     password: z.string().min(1, "Password is required"),
 
@@ -32,3 +26,6 @@ export const signupSchema = z
   });
 
 export type SignupFormValues = z.infer<typeof signupSchema>;
+
+export const forgotPasswordSchema = z.object({ email: emailSchema });
+export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;

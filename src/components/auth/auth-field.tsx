@@ -10,6 +10,8 @@ type AuthFieldProps = {
   registration: UseFormRegisterReturn;
   error?: string;
   disabled?: boolean;
+  visibleLabel?: boolean;
+  placeholder?: string;
 };
 
 export function AuthField({
@@ -20,6 +22,8 @@ export function AuthField({
   registration,
   error,
   disabled,
+  visibleLabel = false,
+  placeholder = label,
 }: AuthFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
@@ -27,7 +31,7 @@ export function AuthField({
 
   return (
     <div>
-      <label htmlFor={id} className="sr-only">
+      <label htmlFor={id} className={visibleLabel ? "mb-1 block px-3 text-xs text-[#666666]" : "sr-only"}>
         {label}
       </label>
 
@@ -36,7 +40,7 @@ export function AuthField({
           {...registration}
           id={id}
           type={isPassword && showPassword ? "text" : type}
-          placeholder={label}
+          placeholder={placeholder}
           autoComplete={autoComplete}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : undefined}

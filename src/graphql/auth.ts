@@ -1,5 +1,14 @@
 import { gql } from "@apollo/client";
 
+export const FORGOT_PASSWORD_MUTATION = gql`
+  mutation ForgotPassword($auth: ForgotPasswordInput!) {
+    forgotPassword(auth: $auth)
+  }
+`;
+
+export type ForgotPasswordResponse = { forgotPassword: null };
+export type ForgotPasswordVariables = { auth: { email: string } };
+
 export const LOGIN_MUTATION = gql`
   mutation Login($auth: AuthInput!) {
     login(auth: $auth) {
