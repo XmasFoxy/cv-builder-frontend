@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ErrorAction } from "./error-screen";
 
 export function GoBackButton() {
   const router = useRouter();
@@ -13,13 +14,5 @@ export function GoBackButton() {
     }
   }
 
-  return (
-    <button
-      type="button"
-      onClick={goBack}
-      className="mt-6 h-12 w-[220px] max-w-full cursor-pointer rounded-full bg-[#c82929] px-6 text-sm font-medium text-white shadow-md transition-colors hover:bg-[#b92525] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c82929] active:bg-[#a61f1f]"
-    >
-      GO BACK
-    </button>
-  );
+  return <ErrorAction onClick={goBack}>GO BACK</ErrorAction>;
 }
