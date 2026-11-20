@@ -34,3 +34,16 @@ it("sends the app origin and creates a session before verification", async () =>
   expect(new Headers(fetchMock.mock.calls[0][1]?.headers).get("origin")).toBe("http://localhost:3000");
   expect(set.mock.calls.map(([name]) => name)).toEqual(["cv_access_token", "cv_refresh_token"]);
 });
+
+it("distinguishes a created account with a failed verification email from a failed registration", async () => {
+  vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json({
+    errors: [{ message: "failedToSendEmail" }],
+  })));
+
+  await expect(registerAccount({
+    email: "test@example.com",
+    password: "example-password",
+    confirmPassword: "example-password",
+  })).resolves.toBe("email-not-sent");
+  expect(set).not.toHaveBeenCalled();
+});

@@ -40,9 +40,12 @@ export default function SignupPage() {
       router.replace("/verify-email");
       return;
     }
-    setServerError(result === "duplicate"
-      ? "An account with this email already exists."
-      : "Registration failed. Please try again.");
+    const messages = {
+      duplicate: "An account with this email already exists.",
+      "email-not-sent": "Your account was created, but we couldn’t send the verification email. You can sign in with your new account.",
+      unavailable: "Registration failed. Please try again.",
+    };
+    setServerError(messages[result]);
   }
 
   return (

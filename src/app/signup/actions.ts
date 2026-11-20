@@ -8,7 +8,7 @@ import { createApolloClient } from "@/lib/apollo-client";
 import { writeSession } from "@/lib/session-cookies";
 import { signupSchema, type SignupFormValues } from "@/lib/validations/auth";
 
-type SignupResult = "success" | "duplicate" | "unavailable";
+type SignupResult = "success" | "duplicate" | "email-not-sent" | "unavailable";
 
 export async function registerAccount(values: SignupFormValues): Promise<SignupResult> {
   const input = signupSchema.safeParse(values);
@@ -33,8 +33,13 @@ export async function registerAccount(values: SignupFormValues): Promise<SignupR
     writeSession(await cookies(), session);
     return "success";
   } catch (error) {
-    if (CombinedGraphQLErrors.is(error) && error.errors.some(({ message }) => message === "userAlreadyExists")) {
-      return "duplicate";
+    if (CombinedGraphQLErrors.is(error)) {
+      if (error.errors.some(({ message }) => message === "userAlreadyExists")) {
+        return "duplicate";
+      }
+      if (error.errors.some(({ message }) => message === "failedToSendEmail")) {
+        return "email-not-sent";
+      }
     }
     return "unavailable";
   }
