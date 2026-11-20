@@ -34,6 +34,8 @@ export type LoginResponse = {
 export const SIGNUP_MUTATION = gql`
   mutation Signup($auth: SignupInput!) {
     signup(auth: $auth) {
+      access_token
+      refresh_token
       user {
         id
         email
@@ -52,9 +54,17 @@ export type SignupVariables = {
 
 export type SignupResponse = {
   signup: {
+    access_token: string;
+    refresh_token: string;
     user: {
       id: string;
       email: string;
     };
   };
 };
+
+export const VERIFY_MAIL_MUTATION = gql`
+  mutation VerifyMail($mail: VerifyMailInput!) {
+    verifyMail(mail: $mail)
+  }
+`;

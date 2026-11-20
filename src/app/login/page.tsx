@@ -36,7 +36,8 @@ export default function LoginPage() {
     const result = await signIn(values).catch(() => "unavailable" as const);
 
     if (result === "success") {
-      router.replace("/employees");
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.replace(next === "/verify-email" ? next : "/employees");
       return;
     }
 

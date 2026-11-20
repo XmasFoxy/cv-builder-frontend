@@ -27,7 +27,7 @@ const UPDATE_TOKEN = gql`
 export const dashboardPaths = ["/employees", "/skills", "/languages", "/cvs"] as const;
 type DashboardPath = (typeof dashboardPaths)[number];
 
-function authenticatedRequest(token: string) {
+export function authenticatedRequest(token: string) {
   return {
     fetchPolicy: "no-cache" as const,
     context: {
