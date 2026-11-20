@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "@apollo/client/react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -13,25 +13,16 @@ import {
   type SignupFormValues,
 } from "@/lib/validations/auth";
 
-import {
-  SIGNUP_MUTATION,
-  type SignupResponse,
-  type SignupVariables,
-} from "@/graphql/auth";
+import { registerAccount } from "./actions";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [serverError, setServerError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-
-  const [signup, { loading }] = useMutation<
-    SignupResponse,
-    SignupVariables
-  >(SIGNUP_MUTATION);
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     mode: "onBlur",
@@ -44,34 +35,17 @@ export default function SignupPage() {
 
   async function onSubmit(values: SignupFormValues) {
     setServerError("");
-    setSuccessMessage("");
-
-    try {
-      const result = await signup({
-        variables: {
-          auth: {
-            email: values.email,
-            password: values.password,
-            confirmPassword: values.confirmPassword,
-          },
-        },
-      });
-
-      if (!result.data?.signup) {
-        setServerError("Registration failed. Please try again.");
-        return;
-      }
-
-      setSuccessMessage(
-        "Account created successfully. You can now sign in.",
-      );
-    } catch (error) {
-      setServerError(
-        error instanceof Error
-          ? error.message
-          : "Registration failed. Please try again.",
-      );
+    const result = await registerAccount(values).catch(() => "unavailable" as const);
+    if (result === "success") {
+      router.replace("/verify-email");
+      return;
     }
+    const messages = {
+      duplicate: "An account with this email already exists.",
+      "email-not-sent": "Your account was created, but we couldn’t send the verification email. You can sign in with your new account.",
+      unavailable: "Registration failed. Please try again.",
+    };
+    setServerError(messages[result]);
   }
 
   return (
@@ -114,15 +88,9 @@ export default function SignupPage() {
         </p>
       )}
 
-      {successMessage && (
-        <p role="status" className="text-center text-sm text-green-700">
-          {successMessage}
-        </p>
-      )}
-
       <AuthActions
-        disabled={loading}
-        submitLabel={loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
+        disabled={isSubmitting}
+        submitLabel={isSubmitting ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
         linkHref="/login"
         linkLabel="I HAVE AN ACCOUNT"
       />

@@ -1,235 +1,85 @@
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MockedProvider } from "@apollo/client/testing/react";
-import { GraphQLError } from "graphql";
 
+import { signIn } from "./actions";
 import LoginPage from "./page";
-import { LOGIN_MUTATION } from "@/graphql/auth";
 
-const loginVariables = {
-  auth: {
-    email: "test@example.com",
-    password: "wrong-password",
-  },
+const { replace } = vi.hoisted(() => ({ replace: vi.fn() }));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
+vi.mock("./actions", () => ({ signIn: vi.fn() }));
+
+const credentials = {
+  email: "test@example.com",
+  password: "test-password",
 };
 
-function renderLogin(
-  mocks: React.ComponentProps<typeof MockedProvider>["mocks"] = [],
-) {
-  return render(
-    <MockedProvider mocks={mocks}>
-      <LoginPage />
-    </MockedProvider>,
-  );
+async function submitLogin(email = credentials.email) {
+  const user = userEvent.setup();
+  await user.type(screen.getByRole("textbox", { name: "Email" }), email);
+  await user.type(screen.getByLabelText("Password"), credentials.password);
+  await user.tab();
+  const submit = screen.getByRole("button", { name: "SIGN IN" });
+  if (email === credentials.email) await waitFor(() => expect(submit).toBeEnabled());
+  await user.click(submit);
 }
 
 describe("LoginPage", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    render(<LoginPage />);
   });
 
   it("renders the login form", () => {
-    renderLogin();
-
-    expect(
-      screen.getByRole("heading", { name: "Welcome back" }),
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("textbox", { name: "Email" }),
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByLabelText("Password"),
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole("button", { name: "SIGN IN" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Welcome back" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Email" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Password")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "SIGN IN" })).toBeInTheDocument();
   });
 
   it("shows validation errors for empty fields", async () => {
     const user = userEvent.setup();
+    await user.click(screen.getByRole("textbox", { name: "Email" }));
+    await user.click(screen.getByLabelText("Password"));
+    await user.tab();
 
-    renderLogin();
-
-    await user.click(
-      screen.getByRole("button", { name: "SIGN IN" }),
-    );
-
-    expect(
-      await screen.findByText("Email is required"),
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText("Password is required"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Email is required")).toBeInTheDocument();
+    expect(screen.getByText("Password is required")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "SIGN IN" })).toBeDisabled();
+    expect(signIn).not.toHaveBeenCalled();
   });
 
-  it("does not send login mutation for invalid email", async () => {
+  it("does not submit an invalid email", async () => {
+    await submitLogin("hello");
+
+    expect(await screen.findByText("Enter a valid email address")).toBeInTheDocument();
+    expect(signIn).not.toHaveBeenCalled();
+  });
+
+  it("keeps sign in disabled when the password is shorter than six characters", async () => {
     const user = userEvent.setup();
-    const mutationSpy = vi.fn();
+    await user.type(screen.getByRole("textbox", { name: "Email" }), credentials.email);
+    await user.type(screen.getByLabelText("Password"), "12345");
+    await user.tab();
 
-    renderLogin([
-      {
-        request: {
-          query: LOGIN_MUTATION,
-          variables: {
-            auth: {
-              email: "hello",
-              password: "123456",
-            },
-          },
-        },
-        result: () => {
-          mutationSpy();
-
-          return {
-            data: {
-              login: {
-                access_token: "test-access-token",
-                refresh_token: "test-refresh-token",
-                user: {
-                  id: "1",
-                  email: "hello",
-                },
-              },
-            },
-          };
-        },
-      },
-    ]);
-
-    await user.type(
-      screen.getByRole("textbox", { name: "Email" }),
-      "hello",
-    );
-
-    await user.type(
-      screen.getByLabelText("Password"),
-      "123456",
-    );
-
-    await user.click(
-      screen.getByRole("button", { name: "SIGN IN" }),
-    );
-
-    expect(
-      await screen.findByText("Enter a valid email address"),
-    ).toBeInTheDocument();
-
-    expect(mutationSpy).not.toHaveBeenCalled();
+    expect(await screen.findByText("Password must be at least 6 characters long")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "SIGN IN" })).toBeDisabled();
   });
 
   it("shows an error when credentials are invalid", async () => {
-    const user = userEvent.setup();
+    vi.mocked(signIn).mockResolvedValue("invalid-credentials");
+    await submitLogin();
 
-    renderLogin([
-      {
-        request: {
-          query: LOGIN_MUTATION,
-          variables: loginVariables,
-        },
-        result: {
-          errors: [
-            new GraphQLError("invalidCredentials"),
-          ],
-        },
-      },
-    ]);
-
-    await user.type(
-      screen.getByRole("textbox", { name: "Email" }),
-      loginVariables.auth.email,
-    );
-
-    await user.type(
-      screen.getByLabelText("Password"),
-      loginVariables.auth.password,
-    );
-
-    await user.click(
-      screen.getByRole("button", { name: "SIGN IN" }),
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("Invalid email or password"),
-      ).toBeInTheDocument();
-    });
+    expect(await screen.findByText("Invalid email or password")).toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalled();
   });
 
-  it("executes login mutation successfully", async () => {
-    const user = userEvent.setup();
+  it("opens employees after creating a session", async () => {
+    vi.mocked(signIn).mockResolvedValue("success");
+    await submitLogin();
 
-    const mutationSpy = vi.fn(() => ({
-      data: {
-        login: {
-          access_token: "test-access-token",
-          refresh_token: "test-refresh-token",
-          user: {
-            id: "1",
-            email: "test@example.com",
-          },
-        },
-      },
-    }));
-
-    const consoleSpy = vi
-      .spyOn(console, "log")
-      .mockImplementation(() => {});
-
-    try {
-      renderLogin([
-        {
-          request: {
-            query: LOGIN_MUTATION,
-            variables: {
-              auth: {
-                email: "test@example.com",
-                password: "correct-password",
-              },
-            },
-          },
-          result: mutationSpy,
-        },
-      ]);
-
-      await user.type(
-        screen.getByRole("textbox", { name: "Email" }),
-        "test@example.com",
-      );
-
-      await user.type(
-        screen.getByLabelText("Password"),
-        "correct-password",
-      );
-
-      await user.click(
-        screen.getByRole("button", { name: "SIGN IN" }),
-      );
-
-      await waitFor(() => {
-        expect(mutationSpy).toHaveBeenCalledTimes(1);
-      });
-
-      await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith(
-          "Login successful:",
-          {
-            id: "1",
-            email: "test@example.com",
-          },
-        );
-      });
-
-      expect(
-        screen.queryByText("Invalid email or password"),
-      ).not.toBeInTheDocument();
-    } finally {
-      consoleSpy.mockRestore();
-    }
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/employees"));
+    expect(signIn).toHaveBeenCalledExactlyOnceWith(credentials);
   });
 });

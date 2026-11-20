@@ -1,4 +1,8 @@
-export default function CVsPage() {
+import { requireSession } from "@/lib/session";
+
+export default async function CVsPage() {
+  await requireSession("/cvs");
+
   return (
     <section>
       <h1 className="text-xl font-medium">CVs</h1>

@@ -1,5 +1,25 @@
 import { gql } from "@apollo/client";
 
+export const FORGOT_PASSWORD_MUTATION = gql`
+  mutation ForgotPassword($auth: ForgotPasswordInput!) {
+    forgotPassword(auth: $auth)
+  }
+`;
+
+export type ForgotPasswordResponse = { forgotPassword: null };
+export type ForgotPasswordVariables = { auth: { email: string } };
+
+export const RESET_PASSWORD_MUTATION = gql`
+  mutation ResetPassword($auth: ResetPasswordInput!) {
+    resetPassword(auth: $auth)
+  }
+`;
+
+export type ResetPasswordResponse = { resetPassword: null };
+export type ResetPasswordVariables = {
+  auth: { newPassword: string; confirmPassword: string };
+};
+
 export const LOGIN_MUTATION = gql`
   mutation Login($auth: AuthInput!) {
     login(auth: $auth) {
@@ -62,3 +82,9 @@ export type SignupResponse = {
     };
   };
 };
+
+export const VERIFY_MAIL_MUTATION = gql`
+  mutation VerifyMail($mail: VerifyMailInput!) {
+    verifyMail(mail: $mail)
+  }
+`;

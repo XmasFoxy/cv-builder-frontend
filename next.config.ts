@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  logging: {
+    serverFunctions: false,
+    incomingRequests: { ignore: [/^\/reset-password(?:\?|$)/] },
+  },
   turbopack: {
     rules: {
       "*.css": {
