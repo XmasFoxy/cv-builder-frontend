@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 
+import { isEmployeeId } from "@/app/(dashboard)/employees/employees-url";
 import { dashboardPaths, refreshSession, verifyAccess } from "@/lib/session";
 import { clearSession, refreshCookie, writeSession } from "@/lib/session-cookies";
 
@@ -12,9 +13,11 @@ function redirectTo(path: string) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const [pathname, query] = (url.searchParams.get("next") ?? "").split("?", 2);
-  const path = dashboardPaths.find((allowedPath) => allowedPath === pathname) ?? "/employees";
-  const destination = pathname === "/employees" && query
-    ? `/employees?${new URLSearchParams(query)}`
+  const employeeId = /^\/employees\/([^/]+)$/.exec(pathname)?.[1];
+  const profilePath = employeeId && isEmployeeId(employeeId) ? pathname : undefined;
+  const path = profilePath ?? dashboardPaths.find((allowedPath) => allowedPath === pathname) ?? "/employees";
+  const destination = (profilePath || pathname === "/employees") && query
+    ? `${path}?${new URLSearchParams(query)}`
     : path;
   const store = await cookies();
   const refresh = store.get(refreshCookie)?.value;

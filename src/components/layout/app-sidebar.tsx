@@ -71,14 +71,14 @@ export function AppSidebar() {
         className="mt-10 flex flex-col gap-2 pr-3"
       >
         {navigation.map((item) => {
-          const active = pathname === item.href;
+          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <Link
               key={item.href}
               href={item.href}
               title={collapsed ? item.label : undefined}
-              aria-current={active ? "page" : undefined}
+              aria-current={pathname === item.href ? "page" : active ? "location" : undefined}
               className={`flex h-12 items-center gap-4 rounded-r-full px-5 text-base transition-colors ${
                 active
                   ? "bg-[#e3e3e6] font-medium text-[#2e2e2e]"

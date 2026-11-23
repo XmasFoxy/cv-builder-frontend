@@ -31,7 +31,7 @@ it("renders the specified columns with employee data and initials", () => {
 
   const table = screen.getByRole("table", { name: "Employees" });
   expect(within(table).getAllByRole("columnheader").map((header) => header.textContent)).toEqual([
-    "Avatar", "First Name", "Last Name", "Email", "Department", "Position",
+    "Avatar", "First Name", "Last Name", "Email", "Department", "Position", "Profile",
   ]);
   const ada = screen.getByRole("row", { name: /ada@example.test/ });
   const adaCells = within(ada).getAllByRole("cell");
@@ -42,16 +42,20 @@ it("renders the specified columns with employee data and initials", () => {
   expect(within(adaCells[0]).queryByText("A")).not.toBeInTheDocument();
   fireEvent.error(avatar);
   expect(within(adaCells[0]).getByText("A")).toBeInTheDocument();
-  expect(adaCells.slice(1).map((cell) => cell.textContent)).toEqual([
+  expect(adaCells.slice(1, -1).map((cell) => cell.textContent)).toEqual([
     "Ada", "Lovelace", "ada@example.test", "Engineering", "Developer",
   ]);
 
   const grace = screen.getByRole("row", { name: /grace@example.test/ });
   const graceCells = within(grace).getAllByRole("cell");
   expect(within(graceCells[0]).getByText("G")).toBeInTheDocument();
-  expect(graceCells.slice(1).map((cell) => cell.textContent)).toEqual([
+  expect(graceCells.slice(1, -1).map((cell) => cell.textContent)).toEqual([
     "", "", "grace@example.test", "", "",
   ]);
+  expect(within(ada).getByRole("link", { name: "View profile for Ada Lovelace" }))
+    .toHaveAttribute("href", "/employees/1");
+  expect(within(grace).getByRole("link", { name: "View profile for grace@example.test" }))
+    .toHaveAttribute("href", "/employees/2");
   expect(screen.queryByRole("navigation", { name: "Employees pagination" })).not.toBeInTheDocument();
 });
 
@@ -59,14 +63,14 @@ it("shows the empty state inside the table", () => {
   render(<EmployeesTable><EmployeesRows items={[]} /></EmployeesTable>);
 
   const table = screen.getByRole("table", { name: "Employees" });
-  expect(within(table).getByRole("cell", { name: "No users found" })).toHaveAttribute("colspan", "6");
+  expect(within(table).getByRole("cell", { name: "No users found" })).toHaveAttribute("colspan", "7");
 });
 
 it("keeps the table headers visible while loading employees", () => {
   render(<Loading />);
 
   const table = screen.getByRole("table", { name: "Employees" });
-  expect(within(table).getAllByRole("columnheader")).toHaveLength(6);
+  expect(within(table).getAllByRole("columnheader")).toHaveLength(7);
   expect(within(table).getByRole("status")).toHaveTextContent("Loading employees…");
 });
 
@@ -94,6 +98,11 @@ it("uses the API page and limit and keeps search and sort in pagination links", 
   results.innerHTML = markup;
 
   expect(getEmployees).toHaveBeenLastCalledWith(query);
+  const rows = within(results).getAllByRole("link", { name: "View profile for Ada Lovelace" });
+  expect(rows.map((link) => link.getAttribute("href"))).toEqual([
+    "/employees/3?search=ada%2Bteam&page=2&sort_by=last_name&sort_order=DESC",
+    "/employees/4?search=ada%2Bteam&page=2&sort_by=last_name&sort_order=DESC",
+  ]);
   expect(within(results).getByText(/Showing/)).toHaveTextContent("Showing 3–4 of 6 employees");
   const pagination = within(results).getByRole("navigation", { name: "Employees pagination" });
   expect(within(pagination).getByText("Page 2 of 3")).toHaveAttribute("aria-current", "page");

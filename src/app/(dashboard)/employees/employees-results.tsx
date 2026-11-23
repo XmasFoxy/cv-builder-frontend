@@ -36,7 +36,7 @@ export function EmployeesResults({ query }: { query: EmployeesQuery }) {
 
 async function EmployeesResultRows({ query }: { query: EmployeesQuery }) {
   const { items } = await readResults(query);
-  return <EmployeesRows items={items} />;
+  return <EmployeesRows items={items} query={query} />;
 }
 
 async function EmployeesPagination({ query }: { query: EmployeesQuery }) {

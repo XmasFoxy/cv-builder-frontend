@@ -1,12 +1,13 @@
-import { Avatar } from "@base-ui/react/avatar";
-import { ArrowDown, ArrowDownUp, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowDownUp, ArrowUp, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
+import { EmployeeAvatar } from "./employee-avatar";
 import type { Employee } from "./employees-data";
-import { employeesHref, type EmployeesSort, type EmployeesSortField } from "./employees-url";
+import { employeeProfileHref, employeesHref, type EmployeesQuery, type EmployeesSort, type EmployeesSortField } from "./employees-url";
 
 const columns: { label: string; sortField?: EmployeesSortField }[] = [
   { label: "Avatar" },
@@ -15,6 +16,7 @@ const columns: { label: string; sortField?: EmployeesSortField }[] = [
   { label: "Email" },
   { label: "Department" },
   { label: "Position" },
+  { label: "Profile" },
 ];
 
 export function EmployeesTable({
@@ -63,7 +65,7 @@ export function EmployeesTable({
                     <Icon aria-hidden="true" className={activeOrder ? "size-4" : "size-4 text-[#777]"} />
                   </Link>
                 ) : (
-                  <span className={label === "Avatar" ? "sr-only" : undefined}>{label}</span>
+                  <span className={label === "Avatar" || label === "Profile" ? "sr-only" : undefined}>{label}</span>
                 )}
               </TableHead>
             );
@@ -75,40 +77,43 @@ export function EmployeesTable({
   );
 }
 
-export function EmployeesRows({ items }: { items?: Employee[] }) {
+export function EmployeesRows({
+  items,
+  query = { search: "", page: 1 },
+}: {
+  items?: Employee[];
+  query?: EmployeesQuery;
+}) {
   return (
     <TableBody>
       {items?.map(({ id, email, profile, department, position }) => {
-        const name = profile.first_name?.trim() || profile.last_name?.trim() || email;
+        const name = [profile.first_name?.trim(), profile.last_name?.trim()].filter(Boolean).join(" ") || email;
         const [initial] = name;
 
         return (
           <TableRow key={id} className="h-[72px] border-b border-[#aaa]">
             <TableCell className="px-4 py-3">
-              <Avatar.Root
-                aria-hidden="true"
-                className="grid size-10 place-items-center overflow-hidden rounded-full bg-[#707070] text-base text-white"
-              >
-                {profile.avatar && (
-                  <Avatar.Image
-                    src={profile.avatar}
-                    alt=""
-                    keepMounted
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                    className="col-start-1 row-start-1 size-full object-cover aria-hidden:invisible"
-                  />
-                )}
-                <Avatar.Fallback className="col-start-1 row-start-1">
-                  {initial?.toUpperCase()}
-                </Avatar.Fallback>
-              </Avatar.Root>
+              <EmployeeAvatar src={profile.avatar} initials={initial?.toUpperCase() ?? ""} />
             </TableCell>
             <TableCell className="px-4 py-3 whitespace-normal wrap-anywhere">{profile.first_name}</TableCell>
             <TableCell className="px-4 py-3 whitespace-normal wrap-anywhere">{profile.last_name}</TableCell>
             <TableCell className="px-4 py-3 whitespace-normal wrap-anywhere">{email}</TableCell>
             <TableCell className="px-4 py-3 whitespace-normal wrap-anywhere">{department?.name}</TableCell>
             <TableCell className="px-4 py-3 whitespace-normal wrap-anywhere">{position?.name}</TableCell>
+            <TableCell className="w-16 px-3 text-center">
+              <Link
+                aria-label={`View profile for ${name}`}
+                href={employeeProfileHref(id, query)}
+                prefetch={false}
+                className={buttonVariants({
+                  variant: "ghost",
+                  size: "icon",
+                  className: "size-10 rounded-full text-[#626262] hover:bg-[#e3e3e6] focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-[#626262]",
+                })}
+              >
+                <ChevronRight aria-hidden="true" className="size-5" />
+              </Link>
+            </TableCell>
           </TableRow>
         );
       })}

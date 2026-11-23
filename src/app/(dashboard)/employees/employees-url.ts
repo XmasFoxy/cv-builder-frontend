@@ -28,7 +28,27 @@ export function employeesHref({
   return query ? `/employees?${query}` : "/employees";
 }
 
+export type EmployeeProfileDestination = `/employees/${string}`;
+
+export function employeeProfileHref(id: string, query: EmployeesQuery): EmployeeProfileDestination {
+  const suffix = employeesHref(query).slice("/employees".length);
+  return `/employees/${encodeURIComponent(id)}${suffix}`;
+}
+
+export function isEmployeeId(id: string) {
+  const value = Number(id);
+  return Number.isInteger(value) && value > 0 && value <= 2_147_483_647 && String(value) === id;
+}
+
 type SearchParam = string | string[] | undefined;
+
+export function readEmployeesQuery(params: Record<string, SearchParam>): EmployeesQuery {
+  return {
+    search: typeof params.search === "string" ? params.search.trim() : "",
+    page: readEmployeesPage(params.page),
+    sort: readEmployeesSort(params.sort_by, params.sort_order),
+  };
+}
 
 export function readEmployeesSort(sortBy: SearchParam, sortOrder: SearchParam): EmployeesSort | undefined {
   if (

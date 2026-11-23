@@ -83,3 +83,20 @@ it("returns to the same employees search and page after refreshing the session",
 
   expect(result.headers.get("location")).toBe(destination);
 });
+
+it.each([
+  ["/employees/17?search=ada%2Bteam&page=2&sort_by=last_name&sort_order=DESC",
+    "/employees/17?search=ada%2Bteam&page=2&sort_by=last_name&sort_order=DESC"],
+  ["/employees/17/extra", "/employees"],
+  ["//example.test/employees/17", "/employees"],
+])("validates refresh destinations for employee profiles (%s)", async (next, expected) => {
+  store.get.mockReturnValue({ value: "old-refresh-token" });
+  fetchMock
+    .mockResolvedValueOnce(Response.json({
+      data: { updateToken: { access_token: "new-access", refresh_token: "new-refresh" } },
+    }))
+    .mockResolvedValueOnce(Response.json({ data: { languages: { __typename: "PaginatedLanguages" } } }));
+
+  const result = await GET(new Request(`http://localhost/api/auth/refresh?next=${encodeURIComponent(next)}`));
+  expect(result.headers.get("location")).toBe(expected);
+});
