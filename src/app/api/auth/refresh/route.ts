@@ -11,7 +11,11 @@ function redirectTo(path: string) {
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const destination = dashboardPaths.find((path) => path === url.searchParams.get("next")) ?? "/employees";
+  const [pathname, query] = (url.searchParams.get("next") ?? "").split("?", 2);
+  const path = dashboardPaths.find((allowedPath) => allowedPath === pathname) ?? "/employees";
+  const destination = pathname === "/employees" && query
+    ? `/employees?${new URLSearchParams(query)}`
+    : path;
   const store = await cookies();
   const refresh = store.get(refreshCookie)?.value;
 

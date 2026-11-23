@@ -26,6 +26,7 @@ const UPDATE_TOKEN = gql`
 
 export const dashboardPaths = ["/employees", "/skills", "/languages", "/cvs"] as const;
 type DashboardPath = (typeof dashboardPaths)[number];
+type DashboardDestination = DashboardPath | `/employees?${string}`;
 
 export function authenticatedRequest(token: string) {
   return {
@@ -82,12 +83,12 @@ export async function requireSession(path: DashboardPath) {
   return redirectForSession(path);
 }
 
-export async function readAccessToken(path: DashboardPath) {
+export async function readAccessToken(path: DashboardDestination) {
   const access = (await cookies()).get(accessCookie)?.value;
   return access || redirectForSession(path);
 }
 
-export async function redirectForSession(path: DashboardPath): Promise<never> {
+export async function redirectForSession(path: DashboardDestination): Promise<never> {
   const store = await cookies();
   if (store.get(refreshCookie)?.value) {
     redirect(`/api/auth/refresh?next=${encodeURIComponent(path)}`);
