@@ -4,7 +4,7 @@ import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { createApolloClient } from "@/lib/apollo-client";
 import { authenticatedRequest, readAccessToken, redirectForSession } from "@/lib/session";
 
-import { employeesHref } from "./employees-url";
+import { employeesHref, type EmployeesQuery } from "./employees-url";
 
 const EMPLOYEES_LIMIT = 10;
 
@@ -54,14 +54,14 @@ const EMPLOYEES_QUERY = gql`
   }
 `;
 
-export async function getEmployees({ search, page }: { search: string; page: number }) {
-  const destination = employeesHref(search, page);
+export async function getEmployees({ search, page, sort }: EmployeesQuery) {
+  const destination = employeesHref({ search, page, sort });
   const token = await readAccessToken(destination);
 
   try {
     const { data } = await createApolloClient().query<{ users: EmployeesResult }>({
       query: EMPLOYEES_QUERY,
-      variables: { params: { search: search || undefined, page, limit: EMPLOYEES_LIMIT } },
+      variables: { params: { search: search || undefined, page, limit: EMPLOYEES_LIMIT, ...sort } },
       ...authenticatedRequest(token),
     });
     if (data?.users) return data.users;
