@@ -76,10 +76,19 @@ export async function refreshSession(token: string) {
 }
 
 export async function requireSession(path: DashboardPath) {
-  const store = await cookies();
-  const access = store.get(accessCookie)?.value;
-  if (access && await verifyAccess(access)) return;
+  const access = await readAccessToken(path);
+  if (await verifyAccess(access)) return;
 
+  return redirectForSession(path);
+}
+
+export async function readAccessToken(path: DashboardPath) {
+  const access = (await cookies()).get(accessCookie)?.value;
+  return access || redirectForSession(path);
+}
+
+export async function redirectForSession(path: DashboardPath): Promise<never> {
+  const store = await cookies();
   if (store.get(refreshCookie)?.value) {
     redirect(`/api/auth/refresh?next=${encodeURIComponent(path)}`);
   }
