@@ -35,7 +35,7 @@ export function AppSidebar() {
 
   return (
     <aside
-      className={`relative flex min-h-screen shrink-0 flex-col bg-[#f5f5f7] transition-[width] duration-200 ${
+      className={`relative flex shrink-0 flex-col bg-[#f5f5f7] transition-[width] duration-200 ${
         collapsed ? "w-[80px]" : "w-[240px]"
       }`}
     >
@@ -101,7 +101,7 @@ export function AppSidebar() {
         })}
       </nav>
 
-      <div className="mt-auto px-4 pb-7">
+      <div className="mt-auto shrink-0 px-4 pb-7">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#cf3033] text-base font-medium text-white">
             D

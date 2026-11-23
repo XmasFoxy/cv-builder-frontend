@@ -10,10 +10,13 @@ export default function DashboardLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f7] text-[#2e2e2e]">
+    <div className="flex h-dvh overflow-hidden bg-[#f5f5f7] text-[#2e2e2e]">
       <AppSidebar />
 
-      <main className="min-w-0 flex-1 px-8 py-8">
+      <main
+        tabIndex={0}
+        className="min-w-0 flex-1 overflow-auto px-8 py-8 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#626262]"
+      >
         {children}
       </main>
     </div>
