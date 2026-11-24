@@ -74,6 +74,7 @@ it("keeps the session cookies during an upstream outage", async () => {
 it.each([
   "/employees?search=ada%2Bteam&page=2",
   "/cvs?search=ada%2Bteam&page=2&sort_by=name&sort_order=DESC",
+  "/cvs/new?search=ada%2Bteam&page=2&sort_by=name&sort_order=DESC",
 ])("restores the list query after refreshing the session (%s)", async (destination) => {
   store.get.mockReturnValue({ value: "old-refresh-token" });
   fetchMock

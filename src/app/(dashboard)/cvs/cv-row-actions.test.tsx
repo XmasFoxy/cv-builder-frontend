@@ -28,28 +28,11 @@ it("opens the row menu by keyboard, links to Details and closes on Escape", asyn
   await user.keyboard("{Enter}");
   const menu = within(await screen.findByRole("menu"));
   expect(menu.getByRole("menuitem", { name: "View" })).toHaveAttribute("href", href);
-  expect(menu.getByRole("menuitem", { name: "Edit" })).toBeVisible();
+  expect(menu.queryByRole("menuitem", { name: "Edit" })).not.toBeInTheDocument();
   expect(menu.getByRole("menuitem", { name: "Delete" })).toBeVisible();
   await user.keyboard("{Escape}");
   await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());
   expect(trigger).toHaveFocus();
-});
-
-it("prepopulates the Edit dialog and saves the selected CV", async () => {
-  vi.mocked(updateEmployeeCv).mockResolvedValue("updated");
-  const user = userEvent.setup();
-  render(<CvRowActions cv={cv} href={href} />);
-  await user.click(screen.getByRole("button", { name: /Actions for/ }));
-  await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
-  const dialog = within(await screen.findByRole("dialog", { name: "Update CV" }));
-  expect(dialog.getByRole("textbox", { name: "Name" })).toHaveValue(cv.name);
-  expect(dialog.getByRole("textbox", { name: "Description" })).toHaveValue(cv.description);
-  fireEvent.change(dialog.getByRole("textbox", { name: "Education" }), { target: { value: "Mathematics" } });
-  await user.click(dialog.getByRole("button", { name: "Save" }));
-  expect(updateEmployeeCv).toHaveBeenCalledWith("17", {
-    name: cv.name, education: "Mathematics", description: cv.description,
-  });
-  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 });
 
 it("only deletes after confirmation and keeps the dialog open on failure", async () => {
@@ -79,10 +62,12 @@ it("only deletes after confirmation and keeps the dialog open on failure", async
 it("shows the complete description in Details and only enables Update for valid changes", async () => {
   vi.mocked(updateEmployeeCv).mockResolvedValue("updated");
   const user = userEvent.setup();
-  render(<EditableCvForm cv={cv} action="Update" />);
+  render(<EditableCvForm cv={cv} />);
   const update = screen.getByRole("button", { name: "Update" });
   const description = screen.getByRole("textbox", { name: "Description" });
   expect(update).toBeDisabled();
+  expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(cv.name);
+  expect(screen.getByRole("textbox", { name: "Education" })).toHaveValue(cv.education);
   expect(description).toHaveValue(cv.description);
   fireEvent.change(description, { target: { value: "" } });
   expect(await screen.findByText("Description is required")).toBeInTheDocument();
@@ -90,6 +75,9 @@ it("shows the complete description in Details and only enables Update for valid 
   fireEvent.change(description, { target: { value: "A new description" } });
   await waitFor(() => expect(update).toBeEnabled());
   await user.click(update);
+  expect(updateEmployeeCv).toHaveBeenCalledWith("17", {
+    name: cv.name, education: cv.education, description: "A new description",
+  });
   expect(await screen.findByRole("status")).toHaveTextContent("CV updated");
   expect(update).toBeDisabled();
   expect(description).toHaveValue("A new description");

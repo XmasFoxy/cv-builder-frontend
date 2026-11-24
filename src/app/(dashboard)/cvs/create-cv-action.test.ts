@@ -7,9 +7,9 @@ import { accessCookie, refreshCookie } from "@/lib/session-cookies";
 import { createEmployeeCv } from "./create-cv-action";
 
 const store = vi.hoisted(() => ({ get: vi.fn(), set: vi.fn() }));
-const refresh = vi.hoisted(() => vi.fn());
+const revalidatePath = vi.hoisted(() => vi.fn());
 vi.mock("next/headers", () => ({ cookies: async () => store }));
-vi.mock("next/cache", () => ({ refresh }));
+vi.mock("next/cache", () => ({ revalidatePath }));
 
 const fetchMock = vi.fn<typeof fetch>();
 const fields = { name: "Frontend Engineer", education: "Computer Science", description: "Builds web apps." };
@@ -30,7 +30,7 @@ it("creates the CV using only validated fields and the session owner, then refre
   fetchMock.mockResolvedValueOnce(Response.json({ data: { createCv: { id: "10" } } }));
   const supplied = { ...fields, name: " Frontend Engineer ", userId: "32" };
 
-  await expect(createEmployeeCv(supplied)).resolves.toBe("created");
+  await expect(createEmployeeCv(supplied)).resolves.toEqual({ id: "10" });
 
   const request = fetchMock.mock.calls[0][1];
   expect(new Headers(request?.headers).get("Authorization")).toBe(`Bearer ${employeeToken}`);
@@ -38,7 +38,7 @@ it("creates the CV using only validated fields and the session owner, then refre
     operationName: "CreateEmployeeCv",
     variables: { cv: { ...fields, userId: "31" } },
   });
-  expect(refresh).toHaveBeenCalledOnce();
+  expect(revalidatePath).toHaveBeenCalledExactlyOnceWith("/cvs");
 });
 
 it.each([
@@ -72,14 +72,14 @@ it("renews rejected access and submits once with the renewed session", async () 
     }))
     .mockResolvedValueOnce(Response.json({ data: { createCv: { id: "10" } } }));
 
-  await expect(createEmployeeCv(fields)).resolves.toBe("created");
+  await expect(createEmployeeCv(fields)).resolves.toEqual({ id: "10" });
   expect(fetchMock.mock.calls.map(([, request]) => JSON.parse(String(request?.body)).operationName)).toEqual([
     "CreateEmployeeCv", "UpdateToken", "CreateEmployeeCv",
   ]);
   expect(store.set.mock.calls.map(([cookie, value]) => [cookie, value])).toEqual([
     [accessCookie, renewedToken], [refreshCookie, "new-refresh"],
   ]);
-  expect(refresh).toHaveBeenCalledOnce();
+  expect(revalidatePath).toHaveBeenCalledExactlyOnceWith("/cvs");
 });
 
 it("reports an ambiguous network failure without automatically repeating the mutation", async () => {
@@ -88,5 +88,5 @@ it("reports an ambiguous network failure without automatically repeating the mut
 
   await expect(createEmployeeCv(fields)).resolves.toBe("unavailable");
   expect(fetchMock).toHaveBeenCalledOnce();
-  expect(refresh).not.toHaveBeenCalled();
+  expect(revalidatePath).not.toHaveBeenCalled();
 });

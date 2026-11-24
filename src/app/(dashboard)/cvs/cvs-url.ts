@@ -8,6 +8,11 @@ export type CvsQuery = {
 
 export type CvsDestination = "/cvs" | `/cvs?${string}`;
 export type CvDetailsDestination = `/cvs/${string}`;
+export const cvCreatePath = "/cvs/new";
+
+export function cvCreateHref(query: CvsQuery): CvDetailsDestination {
+  return `${cvCreatePath}${cvsHref(query).slice("/cvs".length)}`;
+}
 
 export function isCvId(value: string) {
   return /^[1-9]\d{0,9}$/.test(value) && Number(value) <= 2_147_483_647;

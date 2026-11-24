@@ -1,7 +1,7 @@
 "use server";
 
 import { gql } from "@apollo/client";
-import { refresh } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
 import { createApolloClient } from "@/lib/apollo-client";
@@ -10,6 +10,7 @@ import { accessCookie, refreshCookie, writeSession } from "@/lib/session-cookies
 
 import { createCvSchema, type CreateCvFields } from "./create-cv-schema";
 import { readCvAccessClaims } from "./cvs-session";
+import { isCvId } from "./cvs-url";
 
 const CREATE_CV = gql`
   mutation CreateEmployeeCv($cv: CreateCvInput!) {
@@ -19,10 +20,10 @@ const CREATE_CV = gql`
   }
 `;
 
-type SubmitStatus = "created" | "expired" | "forbidden" | "unavailable";
-export type CreateCvStatus = SubmitStatus | "invalid";
+type SubmitResult = { id: string } | "expired" | "forbidden" | "unavailable";
+export type CreateCvResult = SubmitResult | "invalid";
 
-async function submitCv(fields: CreateCvFields, token: string): Promise<SubmitStatus> {
+async function submitCv(fields: CreateCvFields, token: string): Promise<SubmitResult> {
   const claims = readCvAccessClaims(token);
   if (!claims?.userId || !claims.role) return "expired";
   if (claims.role !== "Employee") return "forbidden";
@@ -35,13 +36,14 @@ async function submitCv(fields: CreateCvFields, token: string): Promise<SubmitSt
       variables: { cv: { ...fields, userId } },
       ...authenticatedRequest(token),
     });
-    return data?.createCv?.id ? "created" : "unavailable";
+    const id = data?.createCv?.id;
+    return id && isCvId(id) ? { id } : "unavailable";
   } catch (error) {
     return isRejected(error, "unauthorized") ? "expired" : "unavailable";
   }
 }
 
-export async function createEmployeeCv(values: CreateCvFields): Promise<CreateCvStatus> {
+export async function createEmployeeCv(values: CreateCvFields): Promise<CreateCvResult> {
   const fields = createCvSchema.safeParse(values);
   if (!fields.success) return "invalid";
 
@@ -65,6 +67,6 @@ export async function createEmployeeCv(values: CreateCvFields): Promise<CreateCv
     }
   }
 
-  if (result === "created") refresh();
+  if (typeof result === "object") revalidatePath("/cvs");
   return result;
 }
