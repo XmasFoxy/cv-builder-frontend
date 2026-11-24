@@ -132,6 +132,9 @@
   font-family: var(--font-geist-sans), sans-serif;
   --background: var(--dashboard-background);
   --foreground: var(--dashboard-text);
+  --popover: light-dark(#fff, #252529);
+  --popover-foreground: var(--dashboard-text);
+  --destructive: light-dark(#b51f24, #ff8f91);
   --muted: var(--dashboard-active);
   --muted-foreground: var(--dashboard-muted);
   --ring: var(--dashboard-muted);

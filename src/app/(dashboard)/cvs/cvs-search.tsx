@@ -48,7 +48,7 @@ export function CvsSearch({ search, sortOrder }: Pick<CvsQuery, "search" | "sort
     <form
       action="/cvs"
       role="search"
-      className="relative mt-5 w-full max-w-80"
+      className="relative w-full max-w-80"
       onSubmit={(event) => {
         event.preventDefault();
         applySearch(draft.value);

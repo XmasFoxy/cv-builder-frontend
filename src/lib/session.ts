@@ -40,7 +40,7 @@ export function authenticatedRequest(token: string) {
   };
 }
 
-function isRejected(error: unknown, message: string) {
+export function isRejected(error: unknown, message: string) {
   return CombinedGraphQLErrors.is(error) &&
     error.errors.some((item) => item.message === message);
 }

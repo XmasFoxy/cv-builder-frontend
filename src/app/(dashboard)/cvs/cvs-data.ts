@@ -1,10 +1,10 @@
 import { gql } from "@apollo/client";
-import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { notFound } from "next/navigation";
 
 import { createApolloClient } from "@/lib/apollo-client";
-import { authenticatedRequest, readAccessToken, redirectForSession } from "@/lib/session";
+import { authenticatedRequest, isRejected, readAccessToken, redirectForSession } from "@/lib/session";
 
+import { readCvAccessClaims } from "./cvs-session";
 import { cvsHref, type CvsQuery } from "./cvs-url";
 
 const CV_PAGE_SIZE = 10;
@@ -45,21 +45,10 @@ const EMPLOYEE_CVS_QUERY = gql`
   }
 `;
 
-function readRole(token: string): unknown {
-  const [, payload] = token.split(".");
-  if (!payload) return;
-
-  try {
-    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8"))?.role;
-  } catch {
-    return undefined;
-  }
-}
-
 export async function getCvs(query: CvsQuery): Promise<CvsResult | null> {
   const destination = cvsHref(query);
   const token = await readAccessToken(destination);
-  const role = readRole(token);
+  const role = readCvAccessClaims(token)?.role;
   if (!role) return redirectForSession(destination);
 
   // This check limits the UI to Employee. The API verifies the token and scopes its results.
@@ -81,7 +70,7 @@ export async function getCvs(query: CvsQuery): Promise<CvsResult | null> {
     });
     return data?.cvs ?? null;
   } catch (error) {
-    if (CombinedGraphQLErrors.is(error) && error.errors.some(({ message }) => message === "unauthorized")) {
+    if (isRejected(error, "unauthorized")) {
       return redirectForSession(destination);
     }
     return null;
