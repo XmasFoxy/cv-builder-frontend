@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   const employeePath = /^\/employees\/([1-9]\d*)(?:\/(?:skills|languages))?$/.exec(pathname);
   const profilePath = employeePath && isEmployeeId(employeePath[1]) ? employeePath[0] : undefined;
   const path = profilePath ?? dashboardPaths.find((allowedPath) => allowedPath === pathname) ?? "/employees";
-  const destination = (profilePath || pathname === "/employees") && query
+  const destination = (profilePath || pathname === "/employees" || pathname === "/cvs") && query
     ? `${path}?${new URLSearchParams(query)}`
     : path;
   const store = await cookies();

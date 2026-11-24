@@ -6,7 +6,7 @@ import { getEmployeeProfile, type EmployeeProfile } from "./employee-profile-dat
 import { EmployeeProfileDetails } from "./employee-profile";
 import { EmployeeDetailsLoading } from "./employee-details-loading";
 import EmployeeProfilePage from "./page";
-import { RetryProfileButton } from "./retry-profile-button";
+import { RetryButton } from "@/components/layout/retry-button";
 
 const { refresh } = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
@@ -116,7 +116,7 @@ it("offers Retry on a load failure and refreshes the current profile route", asy
   expect(page.getByRole("link", { name: "Employees" })).toHaveAttribute("href", "/employees?page=2");
   expect(page.getByRole("button", { name: "Retry" })).toBeInTheDocument();
 
-  const { container } = render(<RetryProfileButton />);
+  const { container } = render(<RetryButton />);
   fireEvent.click(within(container).getByRole("button", { name: "Retry" }));
   expect(refresh).toHaveBeenCalledOnce();
 });

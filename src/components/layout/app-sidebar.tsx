@@ -35,7 +35,7 @@ export function AppSidebar() {
 
   return (
     <aside
-      className={`relative flex shrink-0 flex-col bg-[#f5f5f7] transition-[width] duration-200 ${
+      className={`relative flex shrink-0 flex-col transition-[width] duration-200 ${
         collapsed ? "w-[80px]" : "w-[240px]"
       }`}
     >
@@ -49,7 +49,7 @@ export function AppSidebar() {
         />
 
         {!collapsed && (
-          <span className="truncate text-base font-semibold text-[#2e2e2e]">
+          <span className="truncate text-base font-semibold">
             CV Builder
           </span>
         )}
@@ -61,7 +61,7 @@ export function AppSidebar() {
           collapsed ? "Expand sidebar" : "Collapse sidebar"
         }
         onClick={() => setCollapsed((value) => !value)}
-        className="absolute right-2 top-[77px] flex h-7 w-7 items-center justify-center rounded-md text-xl text-[#626262] hover:bg-black/5"
+        className="absolute right-2 top-[77px] flex h-7 w-7 items-center justify-center rounded-md text-xl text-(--dashboard-muted) hover:bg-(--dashboard-hover)"
       >
         {collapsed ? "›" : "‹"}
       </button>
@@ -81,8 +81,8 @@ export function AppSidebar() {
               aria-current={pathname === item.href ? "page" : active ? "location" : undefined}
               className={`flex h-12 items-center gap-4 rounded-r-full px-5 text-base transition-colors ${
                 active
-                  ? "bg-[#e3e3e6] font-medium text-[#2e2e2e]"
-                  : "text-[#626262] hover:bg-[#eaeaec]"
+                  ? "bg-(--dashboard-active) font-medium"
+                  : "text-(--dashboard-muted) hover:bg-(--dashboard-hover)"
               }`}
             >
               <Image
@@ -90,7 +90,7 @@ export function AppSidebar() {
                 alt=""
                 width={24}
                 height={24}
-                className="shrink-0"
+                className="dashboard-nav-icon shrink-0"
               />
 
               {!collapsed && (
@@ -108,7 +108,7 @@ export function AppSidebar() {
           </div>
 
           {!collapsed && (
-            <span className="truncate text-base text-[#454545]">
+            <span className="truncate text-base text-(--dashboard-profile)">
               Demo User
             </span>
           )}

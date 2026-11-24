@@ -3,6 +3,7 @@ import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import type { CvsDestination } from "@/app/(dashboard)/cvs/cvs-url";
 import type { EmployeeProfileDestination } from "@/app/(dashboard)/employees/employees-url";
 import { createApolloClient } from "@/lib/apollo-client";
 import { accessCookie, refreshCookie, type SessionTokens } from "@/lib/session-cookies";
@@ -27,7 +28,7 @@ const UPDATE_TOKEN = gql`
 
 export const dashboardPaths = ["/employees", "/skills", "/languages", "/cvs"] as const;
 type DashboardPath = (typeof dashboardPaths)[number];
-type DashboardDestination = DashboardPath | `/employees?${string}` | EmployeeProfileDestination;
+type DashboardDestination = DashboardPath | `/employees?${string}` | EmployeeProfileDestination | CvsDestination;
 
 export function authenticatedRequest(token: string) {
   return {

@@ -117,6 +117,42 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+.dashboard {
+  color-scheme: light;
+  --dashboard-background: light-dark(#f5f5f7, #1c1c1e);
+  --dashboard-text: light-dark(#2e2e2e, #f2f2f2);
+  --dashboard-muted: light-dark(#626262, #b9b9be);
+  --dashboard-active: light-dark(#e3e3e6, #39393e);
+  --dashboard-hover: light-dark(#eaeaec, #2c2c30);
+  --dashboard-profile: light-dark(#454545, #e1e1e4);
+}
+
+.dashboard:has([data-cvs-page]) {
+  color-scheme: light dark;
+  font-family: var(--font-geist-sans), sans-serif;
+  --background: var(--dashboard-background);
+  --foreground: var(--dashboard-text);
+  --muted: var(--dashboard-active);
+  --muted-foreground: var(--dashboard-muted);
+  --ring: var(--dashboard-muted);
+  --cvs-divider: light-dark(#aaa, #6c6c73);
+  --border: var(--cvs-divider);
+}
+
+.dark .dashboard:has([data-cvs-page]) {
+  color-scheme: dark;
+}
+
+.dark .dashboard:has([data-cvs-page]) .dashboard-nav-icon {
+  filter: invert(1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .dashboard:has([data-cvs-page]) .dashboard-nav-icon {
+    filter: invert(1);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

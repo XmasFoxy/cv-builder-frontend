@@ -5,7 +5,7 @@ import { useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 
-export function RetryProfileButton() {
+export function RetryButton() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 

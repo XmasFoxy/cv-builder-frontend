@@ -1,6 +1,7 @@
 import { ChevronRight, UserRound } from "lucide-react";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
+import { RetryButton } from "@/components/layout/retry-button";
 
 import {
   employeeProfileHref, employeeProfileTabs, employeesHref, readEmployeesQuery,
@@ -8,7 +9,6 @@ import {
 } from "../employees-url";
 import type { EmployeeDetailsResult, EmployeeIdentity } from "./employee-profile-data";
 import { EmployeeDetailsLoading } from "./employee-details-loading";
-import { RetryProfileButton } from "./retry-profile-button";
 
 export type EmployeeDetailsRouteProps = PageProps<"/employees/[employeeId]">;
 
@@ -119,7 +119,7 @@ async function DetailsContent<Data extends { user: EmployeeIdentity }>({
         ) : (
           <>
             <h1 className="text-2xl font-medium">{loadErrors[navigation.tab]}</h1>
-            <RetryProfileButton />
+            <RetryButton />
           </>
         )}
       </div>
