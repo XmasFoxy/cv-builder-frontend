@@ -48,3 +48,14 @@ it("displays validation inline and retains edits when saving fails", async () =>
   expect(await screen.findByRole("alert")).toHaveTextContent("Failed to update profile");
   expect(firstName).toHaveValue("Grace");
 });
+
+it("requires all four fields only when saving the employee's own profile", async () => {
+  render(<EmployeeProfileForm employee={employee} options={options} />);
+  fireEvent.change(screen.getByRole("textbox", { name: "First Name" }), { target: { value: "" } });
+  fireEvent.change(screen.getByRole("textbox", { name: "Last Name" }), { target: { value: "" } });
+  fireEvent.change(screen.getByRole("combobox", { name: "Department" }), { target: { value: "" } });
+  fireEvent.change(screen.getByRole("combobox", { name: "Position" }), { target: { value: "" } });
+  expect(await screen.findAllByText(/is required/)).toHaveLength(4);
+  expect(screen.getByRole("button", { name: "Update" })).toBeDisabled();
+  expect(saveEmployeeProfile).not.toHaveBeenCalled();
+});

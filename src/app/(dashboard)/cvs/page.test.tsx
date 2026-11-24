@@ -38,7 +38,7 @@ it("renders the CV columns, owner email, and description", async () => {
 
   const table = screen.getByRole("table", { name: "CVs" });
   expect(within(table).getAllByRole("columnheader").map((header) => header.textContent))
-    .toEqual(["Name", "Education", "Employee"]);
+    .toEqual(["Name", "Education", "Employee", "Actions"]);
   expect(within(table).getByRole("row", { name: /Frontend Engineer/ })).toHaveTextContent(
     "Frontend EngineerComputer Scienceada@example.test",
   );
@@ -50,7 +50,7 @@ it("retains headers and announces loading", () => {
   render(<Loading />);
 
   const table = screen.getByRole("table", { name: "CVs" });
-  expect(within(table).getAllByRole("columnheader")).toHaveLength(3);
+  expect(within(table).getAllByRole("columnheader")).toHaveLength(4);
   expect(within(table).getByRole("status")).toHaveTextContent("Loading CVs…");
 });
 

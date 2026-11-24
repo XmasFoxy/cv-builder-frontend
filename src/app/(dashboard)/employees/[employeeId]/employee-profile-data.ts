@@ -10,6 +10,7 @@ import type { Employee } from "../employees-data";
 import {
   employeeProfileHref, isEmployeeId, type EmployeeProfileTab, type EmployeesQuery,
 } from "../employees-url";
+import type { Mastery, Proficiency } from "./qualification-levels";
 
 type ProfileOption = { id: string; name: string };
 export type ProfileOptions = { departments: ProfileOption[]; positions: ProfileOption[] };
@@ -28,15 +29,19 @@ export type EmployeeIdentity = {
 export type EmployeeSkill = {
   name: string;
   categoryId: string | null;
-  mastery: "Novice" | "Advanced" | "Competent" | "Proficient" | "Expert";
+  mastery: Mastery;
 };
 
 export type SkillCategory = { id: string; name: string; order: number };
 
 export type EmployeeLanguage = {
   name: string;
-  proficiency: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "Native";
+  proficiency: Proficiency;
 };
+
+type CatalogOption = { id: string; name: string };
+export type SkillOption = CatalogOption & { category: { id: string } };
+type QualificationDetails<T> = { me?: Viewer; catalog?: T[] | null };
 
 const EMPLOYEE_PROFILE_QUERY = gql`
   query EmployeeProfile($userId: ID!) {
@@ -95,6 +100,7 @@ const EMPLOYEE_SKILLS_QUERY = gql`
       name
       order
     }
+    me { id role }
   }
 `;
 
@@ -112,17 +118,36 @@ const EMPLOYEE_LANGUAGES_QUERY = gql`
         }
       }
     }
+    me { id role }
+  }
+`;
+
+const SKILL_CATALOG = gql`
+  query ProfileSkillCatalog($page: Int!) {
+    catalog: skills(params: { page: $page, limit: 100, sort_by: "id" }) {
+      items { id name category { id } }
+      total_pages
+    }
+  }
+`;
+
+const LANGUAGE_CATALOG = gql`
+  query ProfileLanguageCatalog($page: Int!) {
+    catalog: languages(params: { page: $page, limit: 100, sort_by: "id" }) {
+      items { id name }
+      total_pages
+    }
   }
 `;
 
 type EmployeeSkillsData = {
-  user: EmployeeIdentity & { profile: { skills: EmployeeSkill[] } };
+  user: EmployeeIdentity & { id?: string; profile: { skills: EmployeeSkill[] } };
   skillCategories: SkillCategory[];
-};
+} & QualificationDetails<SkillOption>;
 
 type EmployeeLanguagesData = {
-  user: EmployeeIdentity & { profile: { languages: EmployeeLanguage[] } };
-};
+  user: EmployeeIdentity & { id?: string; profile: { languages: EmployeeLanguage[] } };
+} & QualificationDetails<CatalogOption>;
 
 export type EmployeeDetailsResult<Data> =
   | { status: "found"; data: Data }
@@ -165,12 +190,45 @@ async function getProfileOptions(destination: ReturnType<typeof employeeProfileH
   }
 }
 
-export function getEmployeeSkills(id: string, query: EmployeesQuery) {
-  return getEmployeeDetails<EmployeeSkillsData>(id, query, "skills", EMPLOYEE_SKILLS_QUERY);
+export async function getEmployeeSkills(id: string, query: EmployeesQuery) {
+  const result = await getEmployeeDetails<EmployeeSkillsData>(id, query, "skills", EMPLOYEE_SKILLS_QUERY);
+  if (result.status !== "found" || !ownsQualifications(result.data)) return result;
+  const catalog = await getQualificationCatalog<SkillOption>(id, query, "skills", SKILL_CATALOG);
+  return { ...result, data: { ...result.data, catalog } };
 }
 
-export function getEmployeeLanguages(id: string, query: EmployeesQuery) {
-  return getEmployeeDetails<EmployeeLanguagesData>(id, query, "languages", EMPLOYEE_LANGUAGES_QUERY);
+export async function getEmployeeLanguages(id: string, query: EmployeesQuery) {
+  const result = await getEmployeeDetails<EmployeeLanguagesData>(id, query, "languages", EMPLOYEE_LANGUAGES_QUERY);
+  if (result.status !== "found" || !ownsQualifications(result.data)) return result;
+  const catalog = await getQualificationCatalog<CatalogOption>(id, query, "languages", LANGUAGE_CATALOG);
+  return { ...result, data: { ...result.data, catalog } };
+}
+
+function ownsQualifications({ me, user }: { me?: Viewer; user: { id?: string } }) {
+  return me?.role === "Employee" && me.id === user.id;
+}
+
+async function getQualificationCatalog<Option extends CatalogOption>(
+  id: string, query: EmployeesQuery, tab: "skills" | "languages", document: DocumentNode,
+) {
+  const destination = employeeProfileHref(id, query, tab);
+  const token = await readAccessToken(destination);
+  const client = createApolloClient();
+  const options: Option[] = [];
+  try {
+    for (let page = 1, totalPages = 1; page <= totalPages; page++) {
+      const { data } = await client.query<{ catalog: { items: Option[]; total_pages: number } }>({
+        query: document, variables: { page }, ...authenticatedRequest(token),
+      });
+      if (!data) return null;
+      options.push(...data.catalog.items);
+      totalPages = data.catalog.total_pages;
+    }
+    return options.sort((a, b) => a.name.localeCompare(b.name));
+  } catch (error) {
+    if (isRejected(error, "unauthorized")) return redirectForSession(destination);
+    return null;
+  }
 }
 
 async function getEmployeeDetails<Data extends { user: EmployeeIdentity }>(

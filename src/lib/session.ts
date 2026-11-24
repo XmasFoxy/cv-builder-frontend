@@ -3,10 +3,10 @@ import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import type { CvsDestination } from "@/app/(dashboard)/cvs/cvs-url";
+import type { CvDetailsDestination, CvsDestination } from "@/app/(dashboard)/cvs/cvs-url";
 import type { EmployeeProfileDestination } from "@/app/(dashboard)/employees/employees-url";
 import { createApolloClient } from "@/lib/apollo-client";
-import { accessCookie, refreshCookie, type SessionTokens } from "@/lib/session-cookies";
+import { accessCookie, refreshCookie, writeSession, type SessionTokens } from "@/lib/session-cookies";
 
 // The backend has no session query. Its protected languages field runs the access guard.
 const VERIFY_ACCESS = gql`
@@ -28,7 +28,7 @@ const UPDATE_TOKEN = gql`
 
 export const dashboardPaths = ["/employees", "/skills", "/languages", "/cvs", "/profile"] as const;
 type DashboardPath = (typeof dashboardPaths)[number];
-type DashboardDestination = DashboardPath | `/employees?${string}` | EmployeeProfileDestination | CvsDestination;
+type DashboardDestination = DashboardPath | `/employees?${string}` | EmployeeProfileDestination | CvsDestination | CvDetailsDestination;
 
 export function authenticatedRequest(token: string) {
   return {
@@ -88,6 +88,25 @@ export async function requireSession(path: DashboardPath) {
 export async function readAccessToken(path: DashboardDestination) {
   const access = (await cookies()).get(accessCookie)?.value;
   return access || redirectForSession(path);
+}
+
+export async function withMutationSession<Result extends string>(submit: (token: string) => Promise<Result>) {
+  const store = await cookies();
+  const access = store.get(accessCookie)?.value;
+  const result = access ? await submit(access) : "expired";
+  if (result !== "expired") return result;
+
+  // An authentication rejection happens before the mutation runs, so it is safe to retry once.
+  const token = store.get(refreshCookie)?.value;
+  if (!token) return "expired";
+  try {
+    const session = await refreshSession(token);
+    if (!session) return "expired";
+    writeSession(store, session);
+    return await submit(session.access_token);
+  } catch {
+    return "unavailable";
+  }
 }
 
 export async function redirectForSession(path: DashboardDestination): Promise<never> {

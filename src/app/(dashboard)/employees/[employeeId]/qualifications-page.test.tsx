@@ -64,11 +64,11 @@ it("groups read-only skills by category, including skills whose category is miss
     "Programming languages", "Frontend", "Uncategorized",
   ]);
   const frontend = within(page.getByRole("region", { name: "Frontend" }));
-  expect(frontend.getByText("React").closest("li")).toHaveTextContent("Proficient");
-  expect(frontend.getByText("CSS").closest("li")).toHaveTextContent("Competent");
+  expect(frontend.getByText("React").closest("li")).toHaveTextContent("Advanced");
+  expect(frontend.getByText("CSS").closest("li")).toHaveTextContent("Intermediate");
   const uncategorized = within(page.getByRole("region", { name: "Uncategorized" }));
-  expect(uncategorized.getByText("Git").closest("li")).toHaveTextContent("Advanced");
-  expect(uncategorized.getByText("Linux").closest("li")).toHaveTextContent("Novice");
+  expect(uncategorized.getByText("Git").closest("li")).toHaveTextContent("Elementary");
+  expect(uncategorized.getByText("Linux").closest("li")).toHaveTextContent("Beginner");
   expect(page.queryByRole("button")).not.toBeInTheDocument();
   const nav = within(page.getByRole("navigation", { name: "Employee profile" }));
   expect(nav.getByRole("link", { name: "Skills", current: "page" })).toHaveAttribute("href", "/employees/17/skills" + suffix);

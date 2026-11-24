@@ -1,4 +1,11 @@
-import type { EmployeeLanguage, EmployeeSkill, SkillCategory } from "./employee-profile-data";
+"use client";
+
+import { RetryButton } from "@/components/layout/retry-button";
+
+import { addQualification } from "./add-qualification-action";
+import { AddQualificationDialog } from "./add-qualification-dialog";
+import type { EmployeeLanguage, EmployeeSkill, SkillCategory, SkillOption } from "./employee-profile-data";
+import { languageProficiencies, skillMasteryLabels, type Mastery, type Proficiency } from "./qualification-levels";
 
 const masteryLevels = {
   Novice: { width: "20%", color: "#757575", track: "#cecece" },
@@ -38,10 +45,16 @@ function LevelItem({ name, level, indicator }: {
 
 const grid = "mt-4 grid gap-x-6 px-4 @lg:grid-cols-2 @4xl:grid-cols-3";
 
-export function EmployeeSkills({ skills, categories, name }: {
+function CatalogError({ kind }: { kind: string }) {
+  return <div className="mt-8"><p role="alert">Failed to load the {kind} catalog</p><RetryButton /></div>;
+}
+
+export function EmployeeSkills({ skills, categories, name, userId, catalog }: {
   skills: EmployeeSkill[];
   categories: SkillCategory[];
   name: string;
+  userId?: string;
+  catalog?: SkillOption[] | null;
 }) {
   const byCategory = new Map<string | null, EmployeeSkill[]>();
   const categoryIds = new Set(categories.map(({ id }) => id));
@@ -66,17 +79,33 @@ export function EmployeeSkills({ skills, categories, name }: {
             <h2 id={`skill-category-${id ?? "uncategorized"}`}>{category}</h2>
             <ul role="list" className={grid}>
               {items.map((skill) => (
-                <LevelItem key={skill.name} name={skill.name} level={skill.mastery} indicator={masteryLevels[skill.mastery]} />
+                <LevelItem key={skill.name} name={skill.name} level={skillMasteryLabels[skill.mastery]} indicator={masteryLevels[skill.mastery]} />
               ))}
             </ul>
           </section>
         );
       })}
+      {catalog === null && <CatalogError kind="skill" />}
+      {userId && catalog && (
+        <AddQualificationDialog
+          kind="skill"
+          options={catalog.filter((option) => !skills.some((skill) => skill.name === option.name))}
+          levels={Object.entries(skillMasteryLabels).map(([value, label]) => ({ value, label }))}
+          add={(option, level) => addQualification(userId, {
+            kind: "skill", name: option.name, categoryId: option.category.id, level: level as Mastery,
+          })}
+        />
+      )}
     </div>
   );
 }
 
-export function EmployeeLanguages({ languages, name }: { languages: EmployeeLanguage[]; name: string }) {
+export function EmployeeLanguages({ languages, name, userId, catalog }: {
+  languages: EmployeeLanguage[];
+  name: string;
+  userId?: string;
+  catalog?: { id: string; name: string }[] | null;
+}) {
   return (
     <div className="mx-auto max-w-[852px] pt-8">
       <h1 className="sr-only">Languages for {name}</h1>
@@ -97,6 +126,15 @@ export function EmployeeLanguages({ languages, name }: { languages: EmployeeLang
           </ul>
         )}
       </section>
+      {catalog === null && <CatalogError kind="language" />}
+      {userId && catalog && (
+        <AddQualificationDialog
+          kind="language"
+          options={catalog.filter((option) => !languages.some((language) => language.name === option.name))}
+          levels={languageProficiencies.map((level) => ({ value: level, label: level }))}
+          add={(option, level) => addQualification(userId, { kind: "language", name: option.name, level: level as Proficiency })}
+        />
+      )}
     </div>
   );
 }

@@ -4,8 +4,9 @@ import { Fragment, type ReactNode } from "react";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
+import { CvRowActions } from "./cv-row-actions";
 import type { CvSummary } from "./cvs-data";
-import { cvsHref, type CvsQuery } from "./cvs-url";
+import { cvDetailsHref, cvsHref, type CvsQuery } from "./cvs-url";
 
 export function CvsTable({
   query,
@@ -49,20 +50,24 @@ export function CvsTable({
           </TableHead>
           <TableHead scope="col" className="w-[29%] px-4 py-4">Education</TableHead>
           <TableHead scope="col" className="px-4 py-4">Employee</TableHead>
+          <TableHead scope="col" className="w-12 @sm:w-16"><span className="sr-only">Actions</span></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {items?.map(({ id, name, education, user, description }) => (
-          <Fragment key={id}>
-            <TableRow className={description ? "border-0" : "border-[var(--cvs-divider)] last:border-0"}>
-              <TableCell className="px-4 py-6 align-top wrap-anywhere">{name}</TableCell>
-              <TableCell className="px-4 py-6 align-top wrap-anywhere">{education}</TableCell>
-              <TableCell className="px-4 py-6 align-top wrap-anywhere">{user?.email}</TableCell>
+        {items?.map((cv) => (
+          <Fragment key={cv.id}>
+            <TableRow className={cv.description ? "border-0" : "border-[var(--cvs-divider)] last:border-0"}>
+              <TableCell className="px-4 py-6 align-top wrap-anywhere">{cv.name}</TableCell>
+              <TableCell className="px-4 py-6 align-top wrap-anywhere">{cv.education}</TableCell>
+              <TableCell className="px-4 py-6 align-top wrap-anywhere">{cv.user?.email}</TableCell>
+              <TableCell className="px-2 py-4 text-center align-top">
+                {query && <CvRowActions cv={cv} href={cvDetailsHref(cv.id, query)} />}
+              </TableCell>
             </TableRow>
-            {description && (
+            {cv.description && (
               <TableRow className="border-[var(--cvs-divider)] last:border-0">
-                <TableCell colSpan={3} className="px-4 pt-0 pb-4 text-base leading-relaxed wrap-anywhere whitespace-pre-wrap text-muted-foreground">
-                  {description}
+                <TableCell colSpan={4} className="px-4 pt-0 pb-4 text-base leading-relaxed wrap-anywhere whitespace-pre-wrap text-muted-foreground">
+                  {cv.description}
                 </TableCell>
               </TableRow>
             )}
@@ -70,7 +75,7 @@ export function CvsTable({
         ))}
         {!items?.length && (
           <TableRow className="border-0">
-            <TableCell colSpan={3} className="px-4 py-6 text-muted-foreground">{message}</TableCell>
+            <TableCell colSpan={4} className="px-4 py-6 text-muted-foreground">{message}</TableCell>
           </TableRow>
         )}
       </TableBody>

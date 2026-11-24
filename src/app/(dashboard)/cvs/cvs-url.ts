@@ -7,6 +7,15 @@ export type CvsQuery = {
 };
 
 export type CvsDestination = "/cvs" | `/cvs?${string}`;
+export type CvDetailsDestination = `/cvs/${string}`;
+
+export function isCvId(value: string) {
+  return /^[1-9]\d{0,9}$/.test(value) && Number(value) <= 2_147_483_647;
+}
+
+export function cvDetailsHref(cvId: string, query: CvsQuery): CvDetailsDestination {
+  return `/cvs/${cvId}${cvsHref(query).slice("/cvs".length)}`;
+}
 
 export function readCvsQuery(params: Record<string, SearchParam> | URLSearchParams): CvsQuery {
   function read(key: string) {

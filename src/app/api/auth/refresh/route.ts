@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 
+import { isCvId } from "@/app/(dashboard)/cvs/cvs-url";
 import { isEmployeeId } from "@/app/(dashboard)/employees/employees-url";
 import { dashboardPaths, refreshSession, verifyAccess } from "@/lib/session";
 import { clearSession, refreshCookie, writeSession } from "@/lib/session-cookies";
@@ -15,8 +16,10 @@ export async function GET(request: Request) {
   const [pathname, query] = (url.searchParams.get("next") ?? "").split("?", 2);
   const employeePath = /^\/employees\/([1-9]\d*)(?:\/(?:skills|languages))?$/.exec(pathname);
   const profilePath = employeePath && isEmployeeId(employeePath[1]) ? employeePath[0] : undefined;
-  const path = profilePath ?? dashboardPaths.find((allowedPath) => allowedPath === pathname) ?? "/employees";
-  const destination = (profilePath || pathname === "/employees" || pathname === "/cvs") && query
+  const cvPath = /^\/cvs\/([1-9]\d*)$/.exec(pathname);
+  const detailsPath = cvPath && isCvId(cvPath[1]) ? cvPath[0] : undefined;
+  const path = profilePath ?? detailsPath ?? dashboardPaths.find((allowedPath) => allowedPath === pathname) ?? "/employees";
+  const destination = (profilePath || detailsPath || pathname === "/employees" || pathname === "/cvs") && query
     ? `${path}?${new URLSearchParams(query)}`
     : path;
   const store = await cookies();

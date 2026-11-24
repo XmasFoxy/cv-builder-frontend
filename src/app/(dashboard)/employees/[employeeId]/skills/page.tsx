@@ -12,8 +12,8 @@ export default function EmployeeSkillsPage(props: EmployeeDetailsRouteProps) {
       {...props}
       tab="skills"
       load={getEmployeeSkills}
-      renderDetails={({ user, skillCategories }, name) => (
-        <EmployeeSkills skills={user.profile.skills} categories={skillCategories} name={name} />
+      renderDetails={({ user, skillCategories, catalog }, name) => (
+        <EmployeeSkills skills={user.profile.skills} categories={skillCategories} name={name} userId={user.id} catalog={catalog} />
       )}
     />
   );

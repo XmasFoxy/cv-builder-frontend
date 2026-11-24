@@ -12,7 +12,9 @@ export default function EmployeeLanguagesPage(props: EmployeeDetailsRouteProps) 
       {...props}
       tab="languages"
       load={getEmployeeLanguages}
-      renderDetails={({ user }, name) => <EmployeeLanguages languages={user.profile.languages} name={name} />}
+      renderDetails={({ user, catalog }, name) => (
+        <EmployeeLanguages languages={user.profile.languages} name={name} userId={user.id} catalog={catalog} />
+      )}
     />
   );
 }
