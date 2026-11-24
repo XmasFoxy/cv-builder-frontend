@@ -42,6 +42,24 @@ it("does not query GraphQL when there is no session", async () => {
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
+it("loads catalogue choices only for an Employee viewing their own profile", async () => {
+  const user = { id: "17" };
+  const departments = { items: [{ id: "3", name: "Frontend" }], total_pages: 1 };
+  const positions = { items: [{ id: "4", name: "Developer" }], total_pages: 1 };
+  fetchMock
+    .mockResolvedValueOnce(Response.json({ data: { user, me: { id: "8", role: "Employee" } } }))
+    .mockResolvedValueOnce(Response.json({ data: { user, me: { id: "17", role: "Employee" } } }))
+    .mockResolvedValueOnce(Response.json({ data: { departments, positions } }));
+
+  const colleague = await getEmployeeProfile("17", query);
+  expect(colleague).toMatchObject({ status: "found" });
+  if (colleague.status === "found") expect(colleague.data.options).toBeUndefined();
+  expect(fetchMock).toHaveBeenCalledOnce();
+  await expect(getEmployeeProfile("17", query)).resolves.toMatchObject({
+    status: "found", data: { options: { departments: departments.items, positions: positions.items } },
+  });
+});
+
 it("keeps the profile and list context when the access token must be refreshed", async () => {
   fetchMock.mockResolvedValueOnce(Response.json({ errors: [{ message: "unauthorized" }] }));
   const destination = "/employees/17?search=ada%2Bteam&page=2&sort_by=last_name&sort_order=DESC";

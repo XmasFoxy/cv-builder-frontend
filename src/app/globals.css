@@ -119,41 +119,26 @@
 
 .dashboard {
   color-scheme: light;
-  --dashboard-background: light-dark(#f5f5f7, #1c1c1e);
-  --dashboard-text: light-dark(#2e2e2e, #f2f2f2);
-  --dashboard-muted: light-dark(#626262, #b9b9be);
-  --dashboard-active: light-dark(#e3e3e6, #39393e);
-  --dashboard-hover: light-dark(#eaeaec, #2c2c30);
-  --dashboard-profile: light-dark(#454545, #e1e1e4);
+  --dashboard-background: #f5f5f7;
+  --dashboard-text: #2e2e2e;
+  --dashboard-muted: #626262;
+  --dashboard-active: #e3e3e6;
+  --dashboard-hover: #eaeaec;
+  --dashboard-profile: #454545;
 }
 
 .dashboard:has([data-cvs-page]) {
-  color-scheme: light dark;
   font-family: var(--font-geist-sans), sans-serif;
   --background: var(--dashboard-background);
   --foreground: var(--dashboard-text);
-  --popover: light-dark(#fff, #252529);
+  --popover: #fff;
   --popover-foreground: var(--dashboard-text);
-  --destructive: light-dark(#b51f24, #ff8f91);
+  --destructive: #b51f24;
   --muted: var(--dashboard-active);
   --muted-foreground: var(--dashboard-muted);
   --ring: var(--dashboard-muted);
-  --cvs-divider: light-dark(#aaa, #6c6c73);
+  --cvs-divider: #aaa;
   --border: var(--cvs-divider);
-}
-
-.dark .dashboard:has([data-cvs-page]) {
-  color-scheme: dark;
-}
-
-.dark .dashboard:has([data-cvs-page]) .dashboard-nav-icon {
-  filter: invert(1);
-}
-
-@media (prefers-color-scheme: dark) {
-  .dashboard:has([data-cvs-page]) .dashboard-nav-icon {
-    filter: invert(1);
-  }
 }
 
 @layer base {

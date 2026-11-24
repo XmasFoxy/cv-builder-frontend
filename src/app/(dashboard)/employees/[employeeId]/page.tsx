@@ -12,7 +12,7 @@ export default function EmployeeProfilePage(props: EmployeeDetailsRouteProps) {
       {...props}
       tab="profile"
       load={getEmployeeProfile}
-      renderDetails={({ user }, name) => <EmployeeProfileDetails employee={user} name={name} />}
+      renderDetails={({ user, options }, name) => <EmployeeProfileDetails employee={user} name={name} options={options} />}
     />
   );
 }

@@ -5,6 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { UserRound } from "lucide-react";
 
 const navigation = [
   {
@@ -90,7 +91,7 @@ export function AppSidebar() {
                 alt=""
                 width={24}
                 height={24}
-                className="dashboard-nav-icon shrink-0"
+                className="shrink-0"
               />
 
               {!collapsed && (
@@ -102,17 +103,18 @@ export function AppSidebar() {
       </nav>
 
       <div className="mt-auto shrink-0 px-4 pb-7">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#cf3033] text-base font-medium text-white">
-            D
-          </div>
+        <Link href="/profile" prefetch={false} aria-label="My profile"
+          className="flex items-center gap-3 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--dashboard-muted)">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#cf3033] text-white">
+            <UserRound aria-hidden="true" className="size-5" />
+          </span>
 
           {!collapsed && (
             <span className="truncate text-base text-(--dashboard-profile)">
-              Demo User
+              My Profile
             </span>
           )}
-        </div>
+        </Link>
       </div>
     </aside>
   );

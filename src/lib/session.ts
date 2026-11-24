@@ -26,7 +26,7 @@ const UPDATE_TOKEN = gql`
   }
 `;
 
-export const dashboardPaths = ["/employees", "/skills", "/languages", "/cvs"] as const;
+export const dashboardPaths = ["/employees", "/skills", "/languages", "/cvs", "/profile"] as const;
 type DashboardPath = (typeof dashboardPaths)[number];
 type DashboardDestination = DashboardPath | `/employees?${string}` | EmployeeProfileDestination | CvsDestination;
 

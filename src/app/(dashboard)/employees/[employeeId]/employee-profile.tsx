@@ -1,9 +1,15 @@
+import { RetryButton } from "@/components/layout/retry-button";
 import { EmployeeAvatar } from "../employee-avatar";
-import type { EmployeeProfile } from "./employee-profile-data";
+import type { EmployeeProfile, ProfileOptions } from "./employee-profile-data";
+import { EmployeeProfileForm } from "./employee-profile-form";
 
 const membershipDateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" });
 
-export function EmployeeProfileDetails({ employee, name }: { employee: EmployeeProfile; name: string }) {
+export function EmployeeProfileDetails({ employee, name, options }: {
+  employee: EmployeeProfile;
+  name: string;
+  options?: ProfileOptions | null;
+}) {
   const { profile, email, department, position, created_at } = employee;
   const firstName = profile.first_name?.trim();
   const lastName = profile.last_name?.trim();
@@ -35,16 +41,24 @@ export function EmployeeProfileDetails({ employee, name }: { employee: EmployeeP
           ) : "Member since date unavailable"}
         </p>
       </div>
-      <dl className="mt-12 grid gap-x-8 gap-y-5 @md:grid-cols-2">
-        {fields.map(({ label, value }) => (
-          <div key={label} className="min-w-0">
-            <dt className="px-4 text-xs text-[#626262]">{label}</dt>
-            <dd className="flex min-h-12 items-center border border-[#aaa] px-3 py-2 wrap-anywhere">
-              {value || <span className="text-[#626262]">—<span className="sr-only">Not provided</span></span>}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      {options ? <EmployeeProfileForm employee={employee} options={options} /> : (
+        <dl className="mt-12 grid gap-x-8 gap-y-5 @md:grid-cols-2">
+          {fields.map(({ label, value }) => (
+            <div key={label} className="min-w-0">
+              <dt className="px-4 text-xs text-[#626262]">{label}</dt>
+              <dd className="flex min-h-12 items-center border border-[#aaa] px-3 py-2 wrap-anywhere">
+                {value || <span className="text-[#626262]">—<span className="sr-only">Not provided</span></span>}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {options === null && (
+        <div className="mt-4">
+          <p role="alert">Failed to load departments and positions</p>
+          <RetryButton />
+        </div>
+      )}
     </div>
   );
 }
