@@ -4,7 +4,7 @@ import { expect, it, vi } from "vitest";
 
 import { getEmployeeProfile, type EmployeeProfile } from "./employee-profile-data";
 import { EmployeeProfileDetails } from "./employee-profile";
-import Loading from "./loading";
+import { EmployeeDetailsLoading } from "./employee-details-loading";
 import EmployeeProfilePage from "./page";
 import { RetryProfileButton } from "./retry-profile-button";
 
@@ -33,7 +33,7 @@ async function renderProfilePage(params: Record<string, string> = {}) {
 }
 
 it("renders the selected employee and links back to the same filtered, sorted page", async () => {
-  vi.mocked(getEmployeeProfile).mockResolvedValueOnce({ status: "found", employee });
+  vi.mocked(getEmployeeProfile).mockResolvedValueOnce({ status: "found", data: { user: employee } });
   const params = { search: "ada+team", page: "2", sort_by: "last_name", sort_order: "DESC" };
   const page = await renderProfilePage(params);
 
@@ -47,7 +47,11 @@ it("renders the selected employee and links back to the same filtered, sorted pa
     "href",
     "/employees?search=ada%2Bteam&page=2&sort_by=last_name&sort_order=DESC",
   );
-  expect(page.getByText("Profile", { selector: "[aria-current]" })).toHaveAttribute("aria-current", "page");
+  const tabs = within(page.getByRole("navigation", { name: "Employee profile" }));
+  expect(tabs.getByRole("link", { name: "Profile", current: "page" })).toBeInTheDocument();
+  expect(tabs.getByRole("link", { name: "Skills" })).toHaveAttribute(
+    "href", "/employees/17/skills?search=ada%2Bteam&page=2&sort_by=last_name&sort_order=DESC",
+  );
   expect(page.getByText(employee.email)).toBeInTheDocument();
   expect(page.getByText("January 14, 2024")).toHaveAttribute("datetime", "2024-01-14T00:00:00.000Z");
   expect(page.getAllByRole("term").map((field) => field.textContent)).toEqual([
@@ -74,13 +78,13 @@ it("shows the avatar and falls back to initials if the image fails", () => {
 it("falls back to email and placeholders for incomplete profiles", async () => {
   vi.mocked(getEmployeeProfile).mockResolvedValueOnce({
     status: "found",
-    employee: {
+    data: { user: {
       ...employee,
       created_at: "",
       profile: { first_name: null, last_name: null, avatar: null },
       department: null,
       position: null,
-    },
+    } },
   });
   const page = await renderProfilePage();
 
@@ -92,7 +96,7 @@ it("falls back to email and placeholders for incomplete profiles", async () => {
 });
 
 it("announces loading while waiting for the server", () => {
-  render(<Loading />);
+  render(<EmployeeDetailsLoading tab="profile" />);
   expect(screen.getByRole("status")).toHaveTextContent("Loading profile…");
 });
 

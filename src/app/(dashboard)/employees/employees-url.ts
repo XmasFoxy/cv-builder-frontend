@@ -28,11 +28,17 @@ export function employeesHref({
   return query ? `/employees?${query}` : "/employees";
 }
 
+export const employeeProfileTabs = { profile: "Profile", skills: "Skills", languages: "Languages" } as const;
+export type EmployeeProfileTab = keyof typeof employeeProfileTabs;
+
 export type EmployeeProfileDestination = `/employees/${string}`;
 
-export function employeeProfileHref(id: string, query: EmployeesQuery): EmployeeProfileDestination {
+export function employeeProfileHref(
+  id: string, query: EmployeesQuery, tab: EmployeeProfileTab = "profile",
+): EmployeeProfileDestination {
+  const section = tab === "profile" ? "" : `/${tab}`;
   const suffix = employeesHref(query).slice("/employees".length);
-  return `/employees/${encodeURIComponent(id)}${suffix}`;
+  return `/employees/${encodeURIComponent(id)}${section}${suffix}`;
 }
 
 export function isEmployeeId(id: string) {

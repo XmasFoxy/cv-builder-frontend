@@ -13,8 +13,8 @@ function redirectTo(path: string) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const [pathname, query] = (url.searchParams.get("next") ?? "").split("?", 2);
-  const employeeId = /^\/employees\/([^/]+)$/.exec(pathname)?.[1];
-  const profilePath = employeeId && isEmployeeId(employeeId) ? pathname : undefined;
+  const employeePath = /^\/employees\/([1-9]\d*)(?:\/(?:skills|languages))?$/.exec(pathname);
+  const profilePath = employeePath && isEmployeeId(employeePath[1]) ? employeePath[0] : undefined;
   const path = profilePath ?? dashboardPaths.find((allowedPath) => allowedPath === pathname) ?? "/employees";
   const destination = (profilePath || pathname === "/employees") && query
     ? `${path}?${new URLSearchParams(query)}`

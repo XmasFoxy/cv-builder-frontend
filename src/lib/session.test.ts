@@ -87,6 +87,11 @@ it("returns to the same employees search and page after refreshing the session",
 it.each([
   ["/employees/17?search=ada%2Bteam&page=2&sort_by=last_name&sort_order=DESC",
     "/employees/17?search=ada%2Bteam&page=2&sort_by=last_name&sort_order=DESC"],
+  ["/employees/17/skills?search=ada%2Bteam&page=2&sort_by=last_name&sort_order=DESC",
+    "/employees/17/skills?search=ada%2Bteam&page=2&sort_by=last_name&sort_order=DESC"],
+  ["/employees/17/languages?page=2", "/employees/17/languages?page=2"],
+  ["/employees/2147483648/skills", "/employees"],
+  ["/employees/17/languages/extra", "/employees"],
   ["/employees/17/extra", "/employees"],
   ["//example.test/employees/17", "/employees"],
 ])("validates refresh destinations for employee profiles (%s)", async (next, expected) => {
