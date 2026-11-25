@@ -1,19 +1,12 @@
 "use client";
 
 import { RetryButton } from "@/components/layout/retry-button";
+import { groupSkills, LevelIndicator, masteryLevels } from "@/components/layout/skill-presentation";
 
 import { addQualification } from "./add-qualification-action";
 import { AddQualificationDialog } from "./add-qualification-dialog";
 import type { EmployeeLanguage, EmployeeSkill, SkillCategory, SkillOption } from "./employee-profile-data";
 import { languageProficiencies, skillMasteryLabels, type Mastery, type Proficiency } from "./qualification-levels";
-
-const masteryLevels = {
-  Novice: { width: "20%", color: "#757575", track: "#cecece" },
-  Advanced: { width: "40%", color: "#087bb4", track: "#b0d8eb" },
-  Competent: { width: "60%", color: "#39793e", track: "#bbd4bb" },
-  Proficient: { width: "80%", color: "#a96800", track: "#f3d895" },
-  Expert: { width: "100%", color: "#bf3639", track: "#efc3c4" },
-} satisfies Record<EmployeeSkill["mastery"], { width: string; color: string; track: string }>;
 
 const proficiencyLevels = {
   A1: { ...masteryLevels.Novice, width: "14%" },
@@ -32,9 +25,7 @@ function LevelItem({ name, level, indicator }: {
 }) {
   return (
     <li className="flex min-w-0 items-start gap-4 py-2 text-[#626262]">
-      <span aria-hidden="true" className="mt-2.5 h-1 w-14 shrink-0 @lg:w-20" style={{ backgroundColor: indicator.track }}>
-        <span className="block h-full" style={{ width: indicator.width, backgroundColor: indicator.color }} />
-      </span>
+      <LevelIndicator level={indicator} />
       <div className="min-w-0 wrap-anywhere">
         <p>{name}</p>
         <p className="text-xs">{level}</p>
@@ -56,24 +47,13 @@ export function EmployeeSkills({ skills, categories, name, userId, catalog }: {
   userId?: string;
   catalog?: SkillOption[] | null;
 }) {
-  const byCategory = new Map<string | null, EmployeeSkill[]>();
-  const categoryIds = new Set(categories.map(({ id }) => id));
-  for (const skill of skills) {
-    const id = skill.categoryId && categoryIds.has(skill.categoryId) ? skill.categoryId : null;
-    const items = byCategory.get(id) ?? [];
-    items.push(skill);
-    byCategory.set(id, items);
-  }
-  const groups = [...categories].sort((a, b) => a.order - b.order);
+  const groups = groupSkills(skills, categories);
 
   return (
     <div className="mx-auto max-w-[852px] space-y-8 pt-8">
       <h1 className="sr-only">Skills for {name}</h1>
       {skills.length === 0 && <p className="text-[#626262]">No skills added yet</p>}
-      {[...groups, { id: null, name: "Uncategorized" }].map(({ id, name: category }) => {
-        const items = byCategory.get(id);
-        if (!items) return null;
-
+      {groups.map(({ id, name: category, items }) => {
         return (
           <section key={id ?? "uncategorized"} aria-labelledby={`skill-category-${id ?? "uncategorized"}`}>
             <h2 id={`skill-category-${id ?? "uncategorized"}`}>{category}</h2>

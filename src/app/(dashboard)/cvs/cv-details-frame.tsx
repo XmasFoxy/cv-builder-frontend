@@ -2,12 +2,17 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { cvsHref, type CvsQuery } from "./cvs-url";
+import { cvDetailsHref, cvSkillsHref, cvsHref, type CvsQuery } from "./cvs-url";
 
-export function CvDetailsFrame({ query, name, creating, children }: {
+const tabs = ["Details", "Skills", "Projects", "Preview"] as const;
+const tabClass = "flex min-h-12 items-center justify-center border-b-2 border-transparent px-1 py-2 text-center text-xs font-semibold uppercase @sm:text-sm";
+
+export function CvDetailsFrame({ cvId, query, name, creating, tab = "Details", children }: {
+  cvId?: string;
   query: CvsQuery;
   name?: string;
   creating?: boolean;
+  tab?: "Details" | "Skills";
   children: ReactNode;
 }) {
   return (
@@ -23,13 +28,37 @@ export function CvDetailsFrame({ query, name, creating, children }: {
           )}
           <li aria-current="page" className="inline-flex items-center gap-2">
             <ChevronRight aria-hidden="true" className="size-4" />
-            {creating ? "Create CV" : "Details"}
+            {creating ? "Create CV" : tab}
           </li>
         </ol>
       </nav>
-      <h1 className="mt-4 flex min-h-12 w-36 items-center justify-center border-b-2 border-[#c42529] text-sm font-semibold text-[#b31f24] uppercase">
-        Details
-      </h1>
+      {cvId ? (
+        <>
+          <h1 className="sr-only">{tab}{name ? ` for ${name}` : ""}</h1>
+          <nav aria-label="CV sections">
+            <ul className="mt-4 grid max-w-[600px] grid-cols-4">
+              {tabs.map((label) => {
+                const href = label === "Details" ? cvDetailsHref(cvId, query)
+                  : label === "Skills" ? cvSkillsHref(cvId, query) : undefined;
+                return (
+                  <li key={label} className="min-w-0">
+                    {href ? (
+                      <Link href={href} prefetch={false} aria-current={label === tab ? "page" : undefined}
+                        className={`${tabClass} hover:text-[#b31f24] focus-visible:outline-2 focus-visible:-outline-offset-2 aria-[current=page]:border-[#c42529] aria-[current=page]:text-[#b31f24]`}>
+                        {label}
+                      </Link>
+                    ) : <span aria-disabled="true" className={`${tabClass} text-muted-foreground`}>{label}</span>}
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </>
+      ) : (
+        <h1 className="mt-4 flex min-h-12 w-36 items-center justify-center border-b-2 border-[#c42529] text-sm font-semibold text-[#b31f24] uppercase">
+          Details
+        </h1>
+      )}
       <div className="mx-auto max-w-[852px] pt-4">{children}</div>
     </>
   );

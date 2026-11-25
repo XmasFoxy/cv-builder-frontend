@@ -25,7 +25,7 @@ async function DetailsContent({ params, searchParams }: PageProps<"/cvs/[cvId]">
   const query = readCvsQuery(search);
   const cv = await getCvDetails(cvId, query);
   return (
-    <CvDetailsFrame query={query} name={cv?.name}>
+    <CvDetailsFrame cvId={cvId} query={query} name={cv?.name}>
       {cv ? <EditableCvForm key={cv.id} cv={cv} /> : (
         <div className="mt-8 text-center">
           <p role="alert">Failed to load CV details</p>

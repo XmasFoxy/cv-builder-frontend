@@ -22,6 +22,10 @@ export function cvDetailsHref(cvId: string, query: CvsQuery): CvDetailsDestinati
   return `/cvs/${cvId}${cvsHref(query).slice("/cvs".length)}`;
 }
 
+export function cvSkillsHref(cvId: string, query: CvsQuery): CvDetailsDestination {
+  return `/cvs/${cvId}/skills${cvsHref(query).slice("/cvs".length)}`;
+}
+
 export function readCvsQuery(params: Record<string, SearchParam> | URLSearchParams): CvsQuery {
   function read(key: string) {
     const value = params instanceof URLSearchParams ? params.getAll(key) : params[key];
