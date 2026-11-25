@@ -90,7 +90,7 @@ export async function readAccessToken(path: DashboardDestination) {
   return access || redirectForSession(path);
 }
 
-export async function withMutationSession<Result extends string>(submit: (token: string) => Promise<Result>) {
+export async function withMutationSession<Result>(submit: (token: string) => Promise<Result>) {
   const store = await cookies();
   const access = store.get(accessCookie)?.value;
   const result = access ? await submit(access) : "expired";

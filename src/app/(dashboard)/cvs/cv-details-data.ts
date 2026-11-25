@@ -27,19 +27,31 @@ export async function queryOwnedCv<Result extends OwnedCvResponse>(
 ): Promise<Result | null> {
   if (!isCvId(id)) notFound();
   const token = await readAccessToken(destination);
+  const result = await loadOwnedCv<Result>(id, token, document);
+  if (result === "expired") return redirectForSession(destination);
+  if (result === "not-found") notFound();
+  return result === "unavailable" ? null : result;
+}
+
+export async function loadOwnedCv<Result extends OwnedCvResponse>(
+  id: string,
+  token: string,
+  document: DocumentNode,
+): Promise<Result | "expired" | "not-found" | "unavailable"> {
+  if (!isCvId(id)) return "not-found";
   let data;
   try {
     ({ data } = await createApolloClient().query<Result>({
       query: document, variables: { id }, ...authenticatedRequest(token),
     }));
   } catch (error) {
-    if (isRejected(error, "unauthorized")) return redirectForSession(destination);
-    if (isRejected(error, "notOwnCv") || isRejected(error, "cvNotFound")) notFound();
-    return null;
+    if (isRejected(error, "unauthorized")) return "expired";
+    if (isRejected(error, "notOwnCv") || isRejected(error, "cvNotFound")) return "not-found";
+    return "unavailable";
   }
 
-  if (!data) return null;
-  if (data.me.role !== "Employee" || data.cv.user?.id !== data.me.id) notFound();
+  if (!data) return "unavailable";
+  if (data.me.role !== "Employee" || data.cv.user?.id !== data.me.id) return "not-found";
   return data;
 }
 

@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   const [pathname, query] = (url.searchParams.get("next") ?? "").split("?", 2);
   const employeePath = /^\/employees\/([1-9]\d*)(?:\/(?:skills|languages))?$/.exec(pathname);
   const profilePath = employeePath && isEmployeeId(employeePath[1]) ? employeePath[0] : undefined;
-  const cvPath = /^\/cvs\/([1-9]\d*)(?:\/skills)?$/.exec(pathname);
+  const cvPath = /^\/cvs\/([1-9]\d*)(?:\/(?:skills|preview))?$/.exec(pathname);
   const cvPage = pathname === cvCreatePath ? cvCreatePath : cvPath && isCvId(cvPath[1]) ? cvPath[0] : undefined;
   const path = profilePath ?? cvPage ?? dashboardPaths.find((allowedPath) => allowedPath === pathname) ?? "/employees";
   const destination = (profilePath || cvPage || pathname === "/employees" || pathname === "/cvs") && query

@@ -30,6 +30,14 @@ export function cvProjectsHref(cvId: string, query: CvsQuery): CvDetailsDestinat
   return `/cvs/${cvId}/projects${cvsHref(query).slice("/cvs".length)}`;
 }
 
+export function cvPreviewHref(cvId: string, query: CvsQuery): CvDetailsDestination {
+  return `/cvs/${cvId}/preview${cvsHref(query).slice("/cvs".length)}`;
+}
+
+export function cvPdfHref(cvId: string, query: CvsQuery): CvDetailsDestination {
+  return `/cvs/${cvId}/preview/pdf${cvsHref(query).slice("/cvs".length)}`;
+}
+
 export function readCvsQuery(params: Record<string, SearchParam> | URLSearchParams): CvsQuery {
   function read(key: string) {
     const value = params instanceof URLSearchParams ? params.getAll(key) : params[key];

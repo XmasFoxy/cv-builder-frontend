@@ -33,7 +33,7 @@ it("uses linked CV sections and preserves list filters and the active page", () 
   expect(within(sections).getByRole("link", { name: "Details" })).toHaveAttribute("aria-current", "page");
   expect(within(sections).getByRole("link", { name: "Skills" })).toHaveAttribute("href", "/cvs/7/skills" + suffix);
   expect(within(sections).getByRole("link", { name: "Projects" })).toHaveAttribute("href", "/cvs/7/projects" + suffix);
-  expect(within(sections).getByText("Preview")).toHaveAttribute("aria-disabled", "true");
+  expect(within(sections).getByRole("link", { name: "Preview" })).toHaveAttribute("href", "/cvs/7/preview" + suffix);
 
   rerender(<CvDetailsFrame cvId="7" query={query} name="Frontend CV" tab="Skills">Skills list</CvDetailsFrame>);
   expect(within(sections).getByRole("link", { name: "Skills" })).toHaveAttribute("aria-current", "page");
