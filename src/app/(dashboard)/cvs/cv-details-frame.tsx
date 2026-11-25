@@ -2,7 +2,7 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { cvDetailsHref, cvSkillsHref, cvsHref, type CvsQuery } from "./cvs-url";
+import { cvDetailsHref, cvProjectsHref, cvSkillsHref, cvsHref, type CvsQuery } from "./cvs-url";
 
 const tabs = ["Details", "Skills", "Projects", "Preview"] as const;
 const tabClass = "flex min-h-12 items-center justify-center border-b-2 border-transparent px-1 py-2 text-center text-xs font-semibold uppercase @sm:text-sm";
@@ -12,7 +12,7 @@ export function CvDetailsFrame({ cvId, query, name, creating, tab = "Details", c
   query: CvsQuery;
   name?: string;
   creating?: boolean;
-  tab?: "Details" | "Skills";
+  tab?: "Details" | "Skills" | "Projects";
   children: ReactNode;
 }) {
   return (
@@ -39,7 +39,8 @@ export function CvDetailsFrame({ cvId, query, name, creating, tab = "Details", c
             <ul className="mt-4 grid max-w-[600px] grid-cols-4">
               {tabs.map((label) => {
                 const href = label === "Details" ? cvDetailsHref(cvId, query)
-                  : label === "Skills" ? cvSkillsHref(cvId, query) : undefined;
+                  : label === "Skills" ? cvSkillsHref(cvId, query)
+                  : label === "Projects" ? cvProjectsHref(cvId, query) : undefined;
                 return (
                   <li key={label} className="min-w-0">
                     {href ? (
@@ -59,7 +60,7 @@ export function CvDetailsFrame({ cvId, query, name, creating, tab = "Details", c
           Details
         </h1>
       )}
-      <div className="mx-auto max-w-[852px] pt-4">{children}</div>
+      <div className={tab === "Projects" ? "pt-2" : "mx-auto max-w-[852px] pt-4"}>{children}</div>
     </>
   );
 }
